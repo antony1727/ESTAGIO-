@@ -14,6 +14,7 @@ extern String weatherCity;
 extern volatile bool gNeedsRebuild;
 
 WebServer webServer(80);
+DNSServer dnsServer;
 
 static const char HTML_PAGE[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
@@ -522,10 +523,22 @@ void handleRestart() {
 }
 
 void handleNotFound() {
-  webServer.send(404, "text/plain", "Nao encontrado");
+  if(isApMode()){
+    // Captive portal: redireciona qualquer dominio desconhecido para o portal
+    webServer.sendHeader("Location", String("http://") + WiFi.softAPIP().toString() + "/", true);
+    webServer.send(302, "text/plain", "");
+    Serial.printf("[Web] captive redirect para %s -> /\n", webServer.hostHeader().c_str());
+  } else {
+    webServer.send(404, "text/plain", "Nao encontrado");
+  }
+}
+
+bool isApMode(){
+  return (WiFi.getMode() & WIFI_MODE_AP) != 0;
 }
 
 void webServerInit() {
+  // rotas principais
   webServer.on("/", HTTP_GET, handleRoot);
   webServer.on("/api/config", HTTP_GET, handleGetConfig);
   webServer.on("/api/config", HTTP_POST, handlePostConfig);
@@ -535,11 +548,34 @@ void webServerInit() {
   webServer.on("/api/ota/check", HTTP_POST, handleOtaCheck);
   webServer.on("/api/ota/update", HTTP_POST, handleOtaUpdate);
   webServer.on("/api/restart", HTTP_POST, handleRestart);
+  // Captive portal - URLs que Android/iOS/Windows usam para detectar portal
+  webServer.on("/generate_204", HTTP_GET, handleRoot);
+  webServer.on("/gen_204", HTTP_GET, handleRoot);
+  webServer.on("/hotspot-detect.html", HTTP_GET, handleRoot);
+  webServer.on("/canonical.html", HTTP_GET, handleRoot);
+  webServer.on("/success.txt", HTTP_GET, handleRoot);
+  webServer.on("/ncsi.txt", HTTP_GET, handleRoot);
+  webServer.on("/connecttest.txt", HTTP_GET, handleRoot);
+  webServer.on("/wpad.dat", HTTP_GET, handleRoot);
+  webServer.on("/fwlink", HTTP_GET, handleRoot);
   webServer.onNotFound(handleNotFound);
   webServer.begin();
-  Serial.println("[Web] http://"+WiFi.localIP().toString()+"/");
+
+  // Inicia DNS captive portal se estiver em AP
+  if(isApMode()){
+    IPAddress apIP = WiFi.softAPIP();
+    dnsServer.start(53, "*", apIP);
+    Serial.printf("[Web] AP mode - DNS captive em %s porta 53\n", apIP.toString().c_str());
+    Serial.printf("[Web] Portal disponivel em http://%s/  e http://192.168.4.1/\n", apIP.toString().c_str());
+  } else {
+    IPAddress ip = WiFi.localIP();
+    Serial.printf("[Web] STA mode - http://%s/\n", ip.toString().c_str());
+  }
 }
 
 void webServerLoop() {
+  if(isApMode()){
+    dnsServer.processNextRequest();
+  }
   webServer.handleClient();
 }
