@@ -5,11 +5,22 @@ static Preferences prefs;
 
 void loadConfig() {
   prefs.begin("painel", true);
+  bool firstBoot = !prefs.isKey("ssid");
+  if(firstBoot){
+    Serial.println("[Config] primeira inicializacao detectada (NVS vazio) -> modo portal WiFiManager");
+  }
   String s;
   s = prefs.getString("ssid", gConfig.wifi_ssid);
   s.toCharArray(gConfig.wifi_ssid, sizeof(gConfig.wifi_ssid));
   s = prefs.getString("pass", gConfig.wifi_pass);
   s.toCharArray(gConfig.wifi_pass, sizeof(gConfig.wifi_pass));
+  if(firstBoot){
+    // em primeiro boot apos erase, força AP em vez de usar default ROBOBUILDERS
+    // deixa SSID vazio para main.cpp cair no portal
+    gConfig.wifi_ssid[0] = '\0';
+    gConfig.wifi_pass[0] = '\0';
+    Serial.println("[WiFiManager] Nenhuma rede salva -> ira iniciar AP Painel-Config");
+  }
 
   s = prefs.getString("c1", gConfig.currency_1);
   s.toCharArray(gConfig.currency_1, sizeof(gConfig.currency_1));
