@@ -555,20 +555,6 @@ void setup() {
   }
   Serial.println();
   Serial.printf("[WiFi] status=%d (%s)\n", WiFi.status(), WiFi.status()==WL_CONNECTED?"OK":"FALHA");
-  // Fallback: se falhou e nao era o padrao, tenta ROBOBUILDERS (rede do lab)
-  if(WiFi.status()!=WL_CONNECTED && String(gConfig.wifi_ssid) != "ROBOBUILDERS"){
-    Serial.println("[WiFi] Tentando fallback ROBOBUILDERS...");
-    WiFi.begin("ROBOBUILDERS", "luan123*");
-    start = millis();
-    while (WiFi.status() != WL_CONNECTED && millis() - start < 15000) {
-      lv_timer_handler();
-      delay(10);
-    }
-    Serial.printf("[WiFi] fallback status=%d\n", WiFi.status());
-    if(WiFi.status()==WL_CONNECTED){
-      Serial.println("[WiFi] Fallback OK! Mantendo ROBOBUILDERS como backup");
-    }
-  }
   if(WiFi.status()!=WL_CONNECTED){
     WiFi.printDiag(Serial);
     Serial.println("[WiFi] Scan redes proximas:");
