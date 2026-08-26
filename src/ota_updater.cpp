@@ -195,9 +195,9 @@ bool otaCheck(bool showLog){
   Serial.printf("[OTA] url=%s\n", gOta.downloadUrl.c_str());
 
   if(latestCode > curCode && gOta.downloadUrl.length()>0){
-    gOta.state = OTA_NO_UPDATE;
     gOta.error = "Atualizacao disponivel: " + tag;
-    if(showLog) Serial.println("[OTA] " + gOta.error);
+    if(showLog) Serial.println("[OTA] " + gOta.error + " -> iniciando auto-update em background!");
+    otaRequestUpdate(); // Dispara o download e gravacao automaticamente!
     return true;
   } else {
     gOta.state = OTA_NO_UPDATE;
@@ -282,27 +282,36 @@ bool otaUpdateUrl(String url){
         gOta.progress = (written * 100) / len;
       }
       if(millis() - last > 500){
-        Serial.printf("[OTA] %d/%d (%d%%)\n", written, len, gOta.progress);
         last = millis();
+        Serial.printf("[OTA] progresso %d%% (%d/%d)\n", gOta.progress, written, len);
       }
-      if(len > 0 && written >= len) break;
     }
+    if(len > 0 && written >= len) break;
     delay(1);
   }
   http.end();
+
   if(Update.end(true)){
-    gOta.state = OTA_SUCCESS;
-    gOta.progress = 100;
-    Serial.println("[OTA] sucesso, reiniciando...");
-    delay(500);
-    ESP.restart();
-    return true;
+    if(Update.isFinished()){
+      gOta.state = OTA_SUCCESS;
+      gOta.progress = 100;
+      Serial.println("[OTA] Sucesso! Reiniciando...");
+      delay(800);
+      ESP.restart();
+      return true;
+    } else {
+      gOta.error = "Update nao finalizado";
+      gOta.state = OTA_FAILED;
+      return false;
+    }
   } else {
     gOta.error = Update.errorString();
     gOta.state = OTA_FAILED;
-    Serial.printf("[OTA] erro final %s\n", gOta.error.c_str());
+    Serial.printf("[OTA] Erro gravacao: %s\n", gOta.error.c_str());
     return false;
   }
 }
 
-void otaLoop(){}
+void otaLoop(){
+  // loop mantido para operacoes periodicas se necessario
+}
