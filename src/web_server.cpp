@@ -182,6 +182,7 @@ const CAPS=[["Rio Branco-AC",-9.97499,-67.8243],["Maceió-AL",-9.66583,-35.73528
 let state={c1en:true,c2en:true,c3en:true,c4en:false,c5en:false,c6en:false};
 function toast(m,ok=true){let t=document.getElementById('toast');t.textContent=m;t.style.display='block';t.style.borderColor=ok?'#00E676':'#FF5252';t.style.color=ok?'#00E676':'#FF5252';setTimeout(()=>t.style.display='none',2500)}
 function log(m){let e=document.getElementById('log');e.textContent=new Date().toLocaleTimeString()+" "+m+"\n"+e.textContent}
+function val(id,d){let e=document.getElementById(id);return (e&&e.value)?e.value:d}
 function showTab(n){document.querySelectorAll('.tab').forEach((e,i)=>e.classList.toggle('active',["dash","moedas","clima","sistema"][i]==n));["dash","moedas","clima","sistema"].forEach(k=>document.getElementById('tab-'+k).classList.toggle('hidden',k!=n))}
 function toggle(n){state['c'+n+'en']=!state['c'+n+'en'];document.getElementById('sw'+n).classList.toggle('on',state['c'+n+'en']);document.getElementById('sw'+n).nextElementSibling.textContent=state['c'+n+'en']?'Ativada':'Desativada'}
 function fillPairs(){for(let i=1;i<=6;i++){let id='chips'+i; if(!document.getElementById(id)) continue; document.getElementById(id).innerHTML=PAIRS.slice(0,12).map(p=>`<div class="chip" onclick="setPair(${i},'${p}')">${p}</div>`).join('')}}
@@ -198,7 +199,7 @@ async function previewMoeda(n){
  document.getElementById('pv'+n).textContent='buscando...';
  try{
   let r=await fetch('https://economia.awesomeapi.com.br/json/last/'+pair); let j=await r.json();
-  let key=pair.replace('-',''); let bid=j[key]?.bid; let ask=j[key]?.ask; let varpct=j[key]?.pctChange;
+  let key=pair.replace('-',''); let ko=j[key]||{}; let bid=ko.bid; let ask=ko.ask; let varpct=ko.pctChange;
   let txt= bid ? `R$ ${bid} ${varpct?'('+varpct+'%)':''}` : 'não encontrado';
   document.getElementById('pv'+n).textContent=txt;
   let mp=document.getElementById('moedaPreview'); if(mp && n==1) mp.innerHTML=`<div class="kv"><span>${pair}</span><b>${txt}</b></div>`;
@@ -241,7 +242,7 @@ async function previewClima(){
  document.getElementById('pcity').textContent=city||'--'; document.getElementById('pdesc').textContent='buscando...';
  try{
   let r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`); let j=await r.json();
-  let t=j.current_weather?.temperature; let code=j.current_weather?.weathercode; let descs={0:'Céu limpo',1:'Predom. limpo',2:'Parcialmente nublado',3:'Encoberto',45:'Nevoeiro',51:'Chuvisco',61:'Chuva',71:'Neve',95:'Trovoadas'};
+  let cw=j.current_weather||{}; let t=cw.temperature; let code=cw.weathercode; let descs={0:'Céu limpo',1:'Predom. limpo',2:'Parcialmente nublado',3:'Encoberto',45:'Nevoeiro',51:'Chuvisco',61:'Chuva',71:'Neve',95:'Trovoadas'};
   let desc=descs[code]||('Código '+code);
   document.getElementById('ptemp').textContent= (t!=null? Math.round(t)+'°':'--°');
   document.getElementById('pdesc').textContent=desc;
@@ -297,14 +298,14 @@ function updateMirror(j){
    m.style.gridTemplateColumns='340px 1fr'; m.style.gridTemplateRows='140px 148px';
    m.innerHTML=`<div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:12px;padding:10px;grid-row:1/3;display:flex;flex-direction:column;align-items:center;justify-content:center;border-top:3px solid #22D3EE"><div style="font-size:9px;letter-spacing:2px;color:#22D3EE">HORARIO LOCAL</div><div style="font-size:28px;font-weight:900;color:#F8FAFC;margin:8px 0">${j.time}</div><div style="font-size:11px;color:#7A8699">${j.date}</div></div>
    <div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-top:3px solid #FFB300"><div style="font-size:9px;letter-spacing:2px;color:#FFB300">CLIMA</div><div style="font-size:11px;color:#7A8699">${j.city}</div><div style="font-size:22px;font-weight:900;color:#FFB300">${j.weatherTemp}</div><div style="font-size:11px;color:#7A8699">${j.weatherDesc}</div></div>
-   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px"><div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:10px;padding:6px;text-align:center;border-top:2px solid #00E676"><div style="font-size:8px;color:#00E676">${document.getElementById('c1')?.value||'USD-BRL'}</div><div style="font-size:10px;font-weight:800;color:#00E676;margin-top:4px">${j.dolar}</div></div><div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:10px;padding:6px;text-align:center;border-top:2px solid #2979FF"><div style="font-size:8px;color:#2979FF">${document.getElementById('c2')?.value||'EUR-BRL'}</div><div style="font-size:10px;font-weight:800;color:#2979FF">R$ --</div></div><div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:10px;padding:6px;text-align:center;border-top:2px solid #FFAB00"><div style="font-size:8px;color:#FFAB00">${document.getElementById('c3')?.value||'BTC-BRL'}</div><div style="font-size:10px;font-weight:800;color:#FFAB00">R$ --</div></div><div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:10px;padding:6px;text-align:center;border-top:2px solid #FF4081"><div style="font-size:8px;color:#FF4081">${document.getElementById('c4')?.value||'ETH-BRL'}</div><div style="font-size:10px;color:#FF4081">R$ --</div></div><div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:10px;padding:6px;text-align:center;border-top:2px solid #E040FB"><div style="font-size:8px;color:#E040FB">${document.getElementById('c5')?.value||'GBP-BRL'}</div><div style="font-size:10px;color:#E040FB">R$ --</div></div><div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:10px;padding:6px;text-align:center;border-top:2px solid #18FFFF"><div style="font-size:8px;color:#18FFFF">${document.getElementById('c6')?.value||'JPY-BRL'}</div><div style="font-size:10px;color:#18FFFF">R$ --</div></div></div>`;
+   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px"><div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:10px;padding:6px;text-align:center;border-top:2px solid #00E676"><div style="font-size:8px;color:#00E676">${val('c1','USD-BRL')}</div><div style="font-size:10px;font-weight:800;color:#00E676;margin-top:4px">${j.dolar}</div></div><div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:10px;padding:6px;text-align:center;border-top:2px solid #2979FF"><div style="font-size:8px;color:#2979FF">${val('c2','EUR-BRL')}</div><div style="font-size:10px;font-weight:800;color:#2979FF">R$ --</div></div><div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:10px;padding:6px;text-align:center;border-top:2px solid #FFAB00"><div style="font-size:8px;color:#FFAB00">${val('c3','BTC-BRL')}</div><div style="font-size:10px;font-weight:800;color:#FFAB00">R$ --</div></div><div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:10px;padding:6px;text-align:center;border-top:2px solid #FF4081"><div style="font-size:8px;color:#FF4081">${val('c4','ETH-BRL')}</div><div style="font-size:10px;color:#FF4081">R$ --</div></div><div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:10px;padding:6px;text-align:center;border-top:2px solid #E040FB"><div style="font-size:8px;color:#E040FB">${val('c5','GBP-BRL')}</div><div style="font-size:10px;color:#E040FB">R$ --</div></div><div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:10px;padding:6px;text-align:center;border-top:2px solid #18FFFF"><div style="font-size:8px;color:#18FFFF">${val('c6','JPY-BRL')}</div><div style="font-size:10px;color:#18FFFF">R$ --</div></div></div>`;
  } else {
    m.style.gridTemplateColumns=''; m.style.gridTemplateRows='';
    m.style.display='grid'; m.style.gridTemplateColumns=`repeat(${2+cnt},1fr)`;
    let html=`<div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-top:3px solid #22D3EE"><div style="font-size:9px;letter-spacing:2px;color:#22D3EE">HORARIO LOCAL</div><div style="font-size:22px;font-weight:900;color:#F8FAFC;margin:8px 0">${j.time}</div><div style="font-size:11px;color:#7A8699">${j.date}</div></div>`;
    html+=`<div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-top:3px solid #FFB300"><div style="font-size:9px;letter-spacing:2px;color:#FFB300">CLIMA</div><div style="font-size:11px;color:#7A8699">${j.city}</div><div style="font-size:18px;font-weight:900;color:#FFB300">${j.weatherTemp}</div><div style="font-size:11px;color:#7A8699">${j.weatherDesc}</div></div>`;
    let colors=['#00E676','#2979FF','#FFAB00','#FF4081','#E040FB','#18FFFF'];
-   let pairs=[document.getElementById('c1')?.value||'USD-BRL',document.getElementById('c2')?.value||'EUR-BRL',document.getElementById('c3')?.value||'BTC-BRL',document.getElementById('c4')?.value||'ETH-BRL',document.getElementById('c5')?.value||'GBP-BRL',document.getElementById('c6')?.value||'JPY-BRL'];
+   let pairs=[val('c1','USD-BRL'),val('c2','EUR-BRL'),val('c3','BTC-BRL'),val('c4','ETH-BRL'),val('c5','GBP-BRL'),val('c6','JPY-BRL')];
    let idx=0;
    for(let i=0;i<6 && idx<cnt;i++){ if(!state['c'+(i+1)+'en']) continue; html+=`<div style="background:#0F1622;border:1px solid #1E2A3A;border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-top:3px solid ${colors[i]}"><div style="font-size:8px;color:${colors[i]}">${pairs[i]}</div><div style="font-size:${pairs[i].includes('BTC')? '14px':'16px'};font-weight:900;color:${colors[i]};margin:6px 0">${idx==0? j.dolar : 'R$ --'}</div><div style="font-size:9px;color:#5A6A80">${pairs[i].replace('-',' / ')}</div></div>`; idx++; }
    m.innerHTML=html;
@@ -351,10 +352,12 @@ fillPairs(); fillCaps(); loadUFs(); loadConfig(); loadData(); loadOta(); setInte
 )rawliteral";
 
 void handleRoot() {
+  Serial.printf("[Web] GET %s (page %d bytes)\n", webServer.uri().c_str(), (int)strlen_P(HTML_PAGE));
   webServer.send_P(200, "text/html", HTML_PAGE);
 }
 
 void handleGetConfig() {
+  Serial.println("[Web] GET /api/config");
   JsonDocument doc;
   doc["c1"] = gConfig.currency_1;
   doc["c2"] = gConfig.currency_2;
@@ -384,6 +387,9 @@ void handleGetConfig() {
 }
 
 void handlePostConfig() {
+  Serial.printf("[Web] POST /api/config args=%d hasPlain=%d body=%dB uri='%s'\n",
+                webServer.args(), webServer.hasArg("plain")?1:0,
+                (int)webServer.arg("plain").length(), webServer.uri().c_str());
   if (!webServer.hasArg("plain")) {
     webServer.send(400, "application/json", "{\"msg\":\"sem body\"}");
     return;
@@ -517,6 +523,7 @@ void handleOtaUpdate() {
 }
 
 void handleRestart() {
+  Serial.println("[Web] POST /api/restart -> reiniciando");
   webServer.send(200, "application/json", "{\"msg\":\"reiniciando...\"}");
   delay(500);
   ESP.restart();
@@ -561,15 +568,14 @@ void webServerInit() {
   webServer.onNotFound(handleNotFound);
   webServer.begin();
 
-  // Inicia DNS captive portal se estiver em AP
+  IPAddress apIP = WiFi.softAPIP();
+  IPAddress ip = WiFi.localIP();
+  Serial.printf("[Web] HTTP: http://%s/ (AP) | http://%s/ (STA)\n",
+                apIP.toString().c_str(), ip.toString().c_str());
+  // Inicia DNS captive portal (responde qualquer dominio com o IP do AP)
   if(isApMode()){
-    IPAddress apIP = WiFi.softAPIP();
-    dnsServer.start(53, "*", apIP);
-    Serial.printf("[Web] AP mode - DNS captive em %s porta 53\n", apIP.toString().c_str());
-    Serial.printf("[Web] Portal disponivel em http://%s/  e http://192.168.4.1/\n", apIP.toString().c_str());
-  } else {
-    IPAddress ip = WiFi.localIP();
-    Serial.printf("[Web] STA mode - http://%s/\n", ip.toString().c_str());
+    bool dnsOk = dnsServer.start(53, "*", apIP);
+    Serial.printf("[Web] DNS captive porta 53 %s -> http://192.168.4.1/\n", dnsOk?"OK":"FALHOU");
   }
 }
 
