@@ -14,7 +14,7 @@ LGFX tft;
 static lv_disp_draw_buf_t draw_buf;
 static lv_color_t *buf1 = nullptr;
 static lv_color_t *buf2 = nullptr;
-#define BUF_LINES 32 // 800*32 = 25600 px ~50KB - single buffer p/ evitar piscada
+#define BUF_LINES 32 // 800*32 = 25600 px ~50KB
 
 // UI Widgets - Left Panel
 static lv_obj_t *time_label = nullptr;
@@ -51,7 +51,7 @@ String weatherWind = "Wind: -- km/h";
 int currentWeatherCode = 0;
 volatile bool gNeedsRebuild = false;
 
-// Remove acentos e caracteres UTF-8 especiais para exibição 100% perfeita nas fontes ASCII do LVGL
+// Remove acentos e caracteres UTF-8 especiais para exibição perfeita nas fontes ASCII do LVGL
 String sanitize_for_lvgl(String str) {
   String s = str;
   s.replace("á", "a"); s.replace("à", "a"); s.replace("ã", "a"); s.replace("â", "a"); s.replace("ä", "a");
@@ -72,7 +72,6 @@ String sanitize_for_lvgl(String str) {
 void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
   uint32_t w = (area->x2 - area->x1 + 1);
   uint32_t h = (area->y2 - area->y1 + 1);
-  // Lovyan RGB - pushImage faz byteswap correto para LVGL
   tft.pushImage(area->x1, area->y1, w, h, (lgfx::rgb565_t *)&color_p->full);
   lv_disp_flush_ready(disp);
 }
@@ -88,18 +87,18 @@ void my_touch_read(lv_indev_drv_t *indev, lv_indev_data_t *data) {
   }
 }
 
-// Helpers para obter nomes amigáveis das moedas (ASCII seguro para LVGL)
+// Nomes amigáveis das moedas (ASCII seguro para LVGL)
 const char* get_currency_friendly_name(const char* pair) {
   if (strstr(pair, "USD")) return "Dolar";
   if (strstr(pair, "EUR")) return "Euro";
   if (strstr(pair, "BTC")) return "Bitcoin";
   if (strstr(pair, "ETH")) return "Ethereum";
+  if (strstr(pair, "USDT")) return "Tether";
   if (strstr(pair, "GBP")) return "Libra";
   if (strstr(pair, "JPY")) return "Iene";
   if (strstr(pair, "CAD")) return "Dolar Can.";
   if (strstr(pair, "CHF")) return "Franco Suico";
   if (strstr(pair, "ARS")) return "Peso Arg.";
-  if (strstr(pair, "USDT")) return "Tether";
   if (strstr(pair, "SOL")) return "Solana";
   return "Cambio";
 }
@@ -108,8 +107,7 @@ const char* get_currency_friendly_name(const char* pair) {
 void render_currency_icon(lv_obj_t *parent, const char* pair) {
   lv_obj_clean(parent);
 
-  if (strstr(pair, "USD")) {
-    // Bandeira dos EUA: listras vermelhas/brancas + cantão azul com estrela
+  if (strstr(pair, "USD") && !strstr(pair, "USDT")) {
     lv_obj_t *flag = lv_obj_create(parent);
     lv_obj_set_size(flag, 42, 28);
     lv_obj_set_pos(flag, 0, 0);
@@ -144,7 +142,6 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
     lv_obj_set_style_border_width(star, 0, 0);
   }
   else if (strstr(pair, "EUR")) {
-    // Bandeira da União Europeia: fundo azul + círculo dourado
     lv_obj_t *flag = lv_obj_create(parent);
     lv_obj_set_size(flag, 42, 28);
     lv_obj_set_pos(flag, 0, 0);
@@ -171,14 +168,13 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
     lv_obj_set_style_border_width(dot, 0, 0);
   }
   else if (strstr(pair, "BTC")) {
-    // Emblema Bitcoin: círculo laranja com "B"
     lv_obj_t *circle = lv_obj_create(parent);
     lv_obj_set_size(circle, 38, 38);
     lv_obj_align(circle, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_bg_color(circle, lv_color_hex(0xF7931A), 0);
     lv_obj_set_style_radius(circle, LV_RADIUS_CIRCLE, 0);
     lv_obj_set_style_border_width(circle, 0, 0);
-    lv_obj_set_style_shadow_width(circle, 10, 0);
+    lv_obj_set_style_shadow_width(circle, 8, 0);
     lv_obj_set_style_shadow_color(circle, lv_color_hex(0xF7931A), 0);
     lv_obj_set_style_shadow_opa(circle, 80, 0);
     lv_obj_set_style_pad_all(circle, 0, 0);
@@ -206,6 +202,22 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
     lv_obj_set_style_text_color(sym, lv_color_hex(0xFFFFFF), 0);
     lv_obj_align(sym, LV_ALIGN_CENTER, 0, 0);
   }
+  else if (strstr(pair, "USDT")) {
+    lv_obj_t *circle = lv_obj_create(parent);
+    lv_obj_set_size(circle, 38, 38);
+    lv_obj_align(circle, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_style_bg_color(circle, lv_color_hex(0x26A17B), 0);
+    lv_obj_set_style_radius(circle, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_border_width(circle, 0, 0);
+    lv_obj_set_style_pad_all(circle, 0, 0);
+    lv_obj_clear_flag(circle, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *sym = lv_label_create(circle);
+    lv_label_set_text(sym, "T");
+    lv_obj_set_style_text_font(sym, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_color(sym, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_align(sym, LV_ALIGN_CENTER, 0, 0);
+  }
   else {
     lv_obj_t *circle = lv_obj_create(parent);
     lv_obj_set_size(circle, 38, 38);
@@ -226,7 +238,7 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
   }
 }
 
-// Renderizador do Ícone de Clima (Sol atrás de nuvem)
+// Renderizador do Ícone de Clima
 void render_weather_icon(lv_obj_t *parent, int wcode) {
   if (!parent) return;
   lv_obj_clean(parent);
@@ -236,7 +248,7 @@ void render_weather_icon(lv_obj_t *parent, int wcode) {
   bool isRain = (wcode >= 51 && wcode <= 67) || (wcode >= 80 && wcode <= 82);
   bool isThunder = (wcode >= 95);
 
-  // 1. Sol (amarelo com brilho/sombra)
+  // 1. Sol
   if (!isCloudyOnly && !isThunder) {
     lv_obj_t *sun = lv_obj_create(parent);
     int sunSize = isSunnyOnly ? 44 : 32;
@@ -245,7 +257,7 @@ void render_weather_icon(lv_obj_t *parent, int wcode) {
     lv_obj_set_style_bg_color(sun, lv_color_hex(0xFBBF24), 0);
     lv_obj_set_style_radius(sun, LV_RADIUS_CIRCLE, 0);
     lv_obj_set_style_border_width(sun, 0, 0);
-    lv_obj_set_style_shadow_width(sun, 16, 0);
+    lv_obj_set_style_shadow_width(sun, 14, 0);
     lv_obj_set_style_shadow_color(sun, lv_color_hex(0xF59E0B), 0);
     lv_obj_set_style_shadow_opa(sun, 180, 0);
     lv_obj_clear_flag(sun, LV_OBJ_FLAG_SCROLLABLE);
@@ -276,7 +288,7 @@ void render_weather_icon(lv_obj_t *parent, int wcode) {
     lv_obj_set_style_border_width(cBase, 0, 0);
     lv_obj_set_style_shadow_width(cBase, 8, 0);
     lv_obj_set_style_shadow_color(cBase, lv_color_hex(0x000000), 0);
-    lv_obj_set_style_shadow_opa(cBase, 60, 0);
+    lv_obj_set_style_shadow_opa(cBase, 40, 0);
     lv_obj_clear_flag(cBase, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_t *cDome1 = lv_obj_create(parent);
@@ -296,7 +308,7 @@ void render_weather_icon(lv_obj_t *parent, int wcode) {
     lv_obj_clear_flag(cDome2, LV_OBJ_FLAG_SCROLLABLE);
   }
 
-  // 3. Gotas de chuva ou raio
+  // 3. Chuva / Raio
   if (isRain) {
     for (int d = 0; d < 3; d++) {
       lv_obj_t *drop = lv_obj_create(parent);
@@ -318,19 +330,21 @@ void render_weather_icon(lv_obj_t *parent, int wcode) {
   }
 }
 
-// Criação da Interface Principal (Design Fiel à Imagem de Referência)
+// Criação da Interface Principal (com suporte a Modo Claro e Escuro)
 void create_ui() {
   lv_obj_t *scr = lv_scr_act();
   lv_obj_clean(scr);
 
-  lv_color_t colBg = lv_color_hex(0x0A0F1D);       // Fundo escuro
-  lv_color_t colCard = lv_color_hex(0x0F172A);     // Fundo do container esquerdo
-  lv_color_t colCardRight = lv_color_hex(0x111C2E);// Fundo dos cards de moedas
-  lv_color_t colBorder = lv_color_hex(0x1E293B);   // Borda sutil
-  lv_color_t colHeaderGold = lv_color_hex(0xF6C343); // Amarelo/Dourado do título
-  lv_color_t colWhite = lv_color_hex(0xFFFFFF);    // Branco principal
-  lv_color_t colMuted = lv_color_hex(0x94A3B8);    // Cinza suave para legendas
-  lv_color_t colDesc = lv_color_hex(0xCBD5E1);     // Texto de descrição do clima
+  bool isLight = gConfig.display_light;
+
+  lv_color_t colBg = isLight ? lv_color_hex(0xF1F5F9) : lv_color_hex(0x0A0F1D);       // Fundo
+  lv_color_t colCard = isLight ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x0F172A);     // Container esquerdo
+  lv_color_t colCardRight = isLight ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x111C2E);// Cards de moedas
+  lv_color_t colBorder = isLight ? lv_color_hex(0xCBD5E1) : lv_color_hex(0x1E293B);   // Borda
+  lv_color_t colHeaderGold = isLight ? lv_color_hex(0xD97706) : lv_color_hex(0xF6C343); // Título
+  lv_color_t colWhite = isLight ? lv_color_hex(0x0F172A) : lv_color_hex(0xFFFFFF);    // Texto principal
+  lv_color_t colMuted = isLight ? lv_color_hex(0x64748B) : lv_color_hex(0x94A3B8);    // Legendas
+  lv_color_t colDesc = isLight ? lv_color_hex(0x334155) : lv_color_hex(0xCBD5E1);     // Descrição clima
 
   lv_obj_set_style_bg_color(scr, colBg, 0);
   lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
@@ -438,11 +452,11 @@ void create_ui() {
   lv_obj_set_style_text_color(status_label, colMuted, 0);
   lv_obj_set_pos(status_label, 34, 400);
 
-  // 10. Ícone / Badge discreto de versão do Firmware na tela do ESP32
+  // 10. Versão do Firmware na tela do ESP32
   version_badge = lv_label_create(left_panel);
   lv_label_set_text(version_badge, "v" FIRMWARE_VERSION);
   lv_obj_set_style_text_font(version_badge, &lv_font_montserrat_12, 0);
-  lv_obj_set_style_text_color(version_badge, lv_color_hex(0x64748B), 0);
+  lv_obj_set_style_text_color(version_badge, isLight ? lv_color_hex(0x94A3B8) : lv_color_hex(0x64748B), 0);
   lv_obj_align(version_badge, LV_ALIGN_BOTTOM_RIGHT, -14, -6);
 
   // ==========================================

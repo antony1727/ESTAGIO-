@@ -247,8 +247,12 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 140px;
+  max-height: 150px;
   overflow-y: auto;
+  border: 1px solid var(--border);
+  padding: 6px;
+  border-radius: 8px;
+  background: var(--bg-input);
 }
 .wifi-row {
   display: flex;
@@ -256,9 +260,10 @@ body {
   justify-content: space-between;
   padding: 8px 12px;
   border-radius: 6px;
-  background-color: var(--bg-input);
+  background-color: var(--bg-card);
   font-size: 13px;
   cursor: pointer;
+  transition: background 0.2s;
 }
 .wifi-row:hover { background-color: var(--bg-card-hover); }
 .wifi-signal { color: var(--accent-green); font-weight: bold; }
@@ -277,7 +282,7 @@ body {
   border-bottom: 1px solid var(--border);
 }
 .currency-table td {
-  padding: 10px 8px;
+  padding: 8px;
   border-bottom: 1px solid var(--border);
 }
 .currency-item {
@@ -360,7 +365,7 @@ body {
   <div class="top-header">
     <div>
       <div class="subtitle">SMART DASHBOARD v2.1</div>
-      <div class="page-title">Configuração</div>
+      <div class="page-title">Painel de Controle</div>
     </div>
     <div class="user-badge">
       <div class="user-avatar">✓</div>
@@ -374,9 +379,9 @@ body {
       <div class="card-header">
         <div class="card-title">Visão Geral do Status</div>
       </div>
-      <div class="status-line">Status de conexão atual: <span class="active" id="liveWifi">Conexão Ativa</span></div>
-      <div class="status-line">Uptime de: <b id="liveUptime">-- mins</b></div>
-      <div class="status-line">Firmware versão: <b id="liveVersion">v2.1.2</b></div>
+      <div class="status-line">Status Wi-Fi: <span class="active" id="liveWifi">Conexão Ativa</span></div>
+      <div class="status-line">Uptime: <b id="liveUptime">-- mins</b></div>
+      <div class="status-line">Versão Firmware: <b id="liveVersion">v2.1.3</b></div>
 
       <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
         <button class="btn-primary" onclick="triggerOta()" id="btnOta">🚀 Atualizar Firmware (GitHub OTA)</button>
@@ -391,13 +396,9 @@ body {
         <div class="card-title">Configuração de Cidade e Clima</div>
       </div>
       <div class="row-inputs">
-        <div class="form-group">
-          <label class="form-label">Cidade</label>
-          <input type="text" id="city" class="form-input" placeholder="Ex: Lavras, MG">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Região</label>
-          <select id="uf" class="form-select">
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">Estado (UF)</label>
+          <select id="ufSelect" class="form-select" onchange="onStateChange()">
             <option value="MG">Minas Gerais (MG)</option>
             <option value="SP">São Paulo (SP)</option>
             <option value="RJ">Rio de Janeiro (RJ)</option>
@@ -407,78 +408,108 @@ body {
             <option value="DF">Distrito Federal (DF)</option>
             <option value="BA">Bahia (BA)</option>
             <option value="GO">Goiás (GO)</option>
+            <option value="ES">Espírito Santo (ES)</option>
             <option value="PE">Pernambuco (PE)</option>
+            <option value="CE">Ceará (CE)</option>
+            <option value="AM">Amazonas (AM)</option>
+            <option value="PA">Pará (PA)</option>
+            <option value="MT">Mato Grosso (MT)</option>
+            <option value="MS">Mato Grosso do Sul (MS)</option>
+            <option value="MA">Maranhão (MA)</option>
+            <option value="PB">Paraíba (PB)</option>
+            <option value="RN">Rio Grande do Norte (RN)</option>
+            <option value="AL">Alagoas (AL)</option>
+            <option value="SE">Sergipe (SE)</option>
+            <option value="PI">Piauí (PI)</option>
+            <option value="TO">Tocantins (TO)</option>
+            <option value="RO">Rondônia (RO)</option>
+            <option value="AC">Acre (AC)</option>
+            <option value="AP">Amapá (AP)</option>
+            <option value="RR">Roraima (RR)</option>
           </select>
         </div>
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Cidade</label>
+          <input type="text" id="cityInput" list="cityDatalist" class="form-input" placeholder="Digite ou selecione a cidade" onchange="onCitySelected()">
+          <datalist id="cityDatalist"></datalist>
+        </div>
       </div>
-      <button class="btn-primary" onclick="saveLocation()">Salvar Localização</button>
+      <button class="btn-primary" onclick="saveLocation()">Salvar Localização no Painel</button>
     </div>
 
     <!-- CONFIGURAÇÃO DE REDES (WIFI) -->
     <div class="card col-6">
       <div class="card-header">
         <div class="card-title">Configuração de Redes (WiFi)</div>
-        <button class="btn-primary btn-small" onclick="scanWifi()">Buscar</button>
+        <button class="btn-primary btn-small" onclick="scanWifi()" id="btnScan">🔍 Buscar Redes</button>
       </div>
       <div class="wifi-list" id="wifiList">
-        <div class="wifi-row" onclick="selectWifi('Casa_Net')">
-          <span>Rede Atual: <b>Casa_Net</b></span>
-          <span class="wifi-signal">📶</span>
-        </div>
+        <div style="padding:10px;font-size:12px;color:var(--text-muted);text-align:center;">Clique em 'Buscar Redes' para listar</div>
       </div>
       <div class="form-group">
-        <label class="form-label">SSID</label>
-        <input type="text" id="ssid" class="form-input" placeholder="Nome da Rede">
+        <label class="form-label">Nome da Rede (SSID)</label>
+        <input type="text" id="ssid" class="form-input" placeholder="Ex: Casa_WiFi">
       </div>
       <div class="form-group">
-        <label class="form-label">Senha</label>
-        <input type="password" id="pass" class="form-input" placeholder="Senha do Wi-Fi">
+        <label class="form-label">Senha do Wi-Fi</label>
+        <input type="password" id="pass" class="form-input" placeholder="Senha da rede">
       </div>
-      <button class="btn-primary" onclick="saveWifi()">Salvar Configuração</button>
+      <button class="btn-primary" onclick="saveWifi()">Conectar e Salvar Wi-Fi</button>
     </div>
 
     <!-- CONFIGURAÇÃO DE COTAÇÃO DE MOEDAS -->
     <div class="card col-6">
       <div class="card-header">
         <div class="card-title">Configuração de Cotação de Moedas</div>
-        <button class="btn-primary btn-small" onclick="addCurrencyPrompt()">Adicionar Moeda</button>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <select id="currencyPreset" class="form-select" style="flex: 2;">
+          <option value="USD-BRL|Dólar|🇺🇸">🇺🇸 USD-BRL (Dólar Comercial)</option>
+          <option value="EUR-BRL|Euro|🇪🇺">🇪🇺 EUR-BRL (Euro)</option>
+          <option value="BTC-BRL|Bitcoin|₿">₿ BTC-BRL (Bitcoin)</option>
+          <option value="ETH-BRL|Ethereum|Ξ">Ξ ETH-BRL (Ethereum)</option>
+          <option value="USDT-BRL|Tether|₮">₮ USDT-BRL (Tether USD)</option>
+          <option value="GBP-BRL|Libra|🇬🇧">🇬🇧 GBP-BRL (Libra Esterlina)</option>
+          <option value="CAD-BRL|Dólar Can.|🇨🇦">🇨🇦 CAD-BRL (Dólar Canadense)</option>
+          <option value="CHF-BRL|Franco Suíço|🇨🇭">🇨🇭 CHF-BRL (Franco Suíço)</option>
+          <option value="JPY-BRL|Iene|🇯🇵">🇯🇵 JPY-BRL (Iene Japonês)</option>
+          <option value="ARS-BRL|Peso Arg.|🇦🇷">🇦🇷 ARS-BRL (Peso Argentino)</option>
+          <option value="SOL-BRL|Solana|◎">◎ SOL-BRL (Solana)</option>
+        </select>
+        <button class="btn-primary btn-small" onclick="addPresetCurrency()" style="flex:1;">➕ Adicionar</button>
       </div>
       <table class="currency-table">
         <thead>
           <tr>
-            <th>Código 1</th>
-            <th>Código 2</th>
+            <th>Par</th>
+            <th>Moeda</th>
             <th>Exibir Nome</th>
-            <th>Taxa/Fonte</th>
+            <th>Taxa</th>
             <th>Ações</th>
           </tr>
         </thead>
         <tbody id="currencyBody">
         </tbody>
       </table>
-      <div class="form-group" style="margin-top: 10px;">
-        <label class="form-label">API Key / Fonte de Dados</label>
-        <input type="text" class="form-input" value="AwesomeAPI (Dados em Tempo Real)" readonly>
-      </div>
     </div>
 
-    <!-- AJUSTES DE EXIBIÇÃO & UPLOAD MANUAL -->
+    <!-- AJUSTES DE EXIBIÇÃO & CONTROLE DO ESP32 -->
     <div class="card col-12">
       <div class="card-header">
-        <div class="card-title">Ajustes de Exibição & Upload Local</div>
+        <div class="card-title">Ajustes de Exibição (Tela do ESP32 & Web)</div>
       </div>
       <div class="row-inputs">
         <div class="form-group" style="flex: 2;">
-          <label class="form-label">Brilho do Display: <span id="brightVal">180</span></label>
-          <input type="range" min="10" max="255" id="bright" style="width: 100%; margin-top: 8px;" oninput="updateBright(this.value)">
+          <label class="form-label">Brilho do Display ESP32: <span id="brightVal" style="font-weight:700;color:var(--accent-blue);">180</span></label>
+          <input type="range" min="10" max="255" id="bright" value="180" style="width: 100%; margin-top: 8px;" oninput="updateBright(this.value)">
         </div>
         <div class="form-group" style="flex: 1;">
-          <label class="form-label">Tema</label>
-          <button class="btn-primary" onclick="toggleTheme()" id="themeBtn">🌙 Modo Escuro</button>
+          <label class="form-label">Tema da Tela e Web</label>
+          <button class="btn-primary" onclick="toggleTheme()" id="themeBtn" style="margin-top:2px;">🌙 Modo Escuro</button>
         </div>
         <div class="form-group" style="flex: 2;">
-          <label class="form-label">Upload Direto de firmware.bin (Sem Internet)</label>
-          <div style="display:flex;gap:6px;margin-top:4px;">
+          <label class="form-label">Upload Direto de firmware.bin</label>
+          <div style="display:flex;gap:6px;margin-top:2px;">
             <input type="file" id="binFile" accept=".bin" class="form-input" style="padding:4px;">
             <button class="btn-primary btn-small" onclick="uploadLocalBin()">Enviar</button>
           </div>
@@ -491,69 +522,108 @@ body {
 <div class="toast" id="toast">Configuração salva com sucesso!</div>
 
 <script>
-let state = {};
 let currencies = [
   { c1: 'USD-BRL', c2: 'USD', name: 'Dólar', rate: 'R$ 4,92', flag: '🇺🇸' },
   { c1: 'EUR-BRL', c2: 'EUR', name: 'Euro', rate: 'R$ 5,21', flag: '🇪🇺' },
   { c1: 'BTC-BRL', c2: 'BTC/BRL', name: 'Bitcoin', rate: 'R$ 171.450', flag: '₿' }
 ];
 
+let isLightMode = false;
+
 function toast(msg) {
   let t = document.getElementById('toast');
   t.textContent = msg;
   t.style.display = 'block';
-  setTimeout(() => t.style.display = 'none', 3000);
+  setTimeout(() => t.style.display = 'none', 3500);
 }
 
 function switchNav(tab) {
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   event.currentTarget.classList.add('active');
-  if (tab === 'ajuda' || tab === 'config') {
-    toast('Navegando para ' + tab);
+}
+
+// CIDADES POR ESTADO VIA IBGE API
+async function loadCitiesByState(uf) {
+  let list = document.getElementById('cityDatalist');
+  try {
+    let r = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`);
+    let data = await r.json();
+    list.innerHTML = data.map(m => `<option value="${m.nome}, ${uf}">`).join('');
+  } catch (e) {
+    console.error('Erro IBGE:', e);
   }
 }
 
+function onStateChange() {
+  let uf = document.getElementById('ufSelect').value;
+  loadCitiesByState(uf);
+}
+
+function onCitySelected() {
+  toast('Cidade selecionada! Clique em Salvar Localização');
+}
+
+async function saveLocation() {
+  let city = document.getElementById('cityInput').value;
+  if (!city) {
+    toast('Digite o nome de uma cidade!');
+    return;
+  }
+  toast('Buscando coordenadas para ' + city + '...');
+  let lat = -21.2461, lon = -44.9992;
+  try {
+    let r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city.split(',')[0].trim())}&count=1&language=pt&format=json`);
+    let j = await r.json();
+    if (j.results && j.results.length > 0) {
+      lat = j.results[0].latitude;
+      lon = j.results[0].longitude;
+    }
+  } catch (e) {}
+
+  await fetch('/api/config', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ city: city.split(',')[0].trim(), lat: lat, lon: lon })
+  });
+  toast('Localização salva! Painel ESP32 atualizado.');
+}
+
+// MOEDAS PRECONFIGURADAS
 function renderCurrencies() {
   let tbody = document.getElementById('currencyBody');
   tbody.innerHTML = currencies.map((c, i) => `
     <tr>
       <td><div class="currency-item"><span>${c.flag||'💰'}</span> <b>${c.c1}</b></div></td>
       <td>${c.c2}</td>
-      <td><input type="text" class="form-input" style="padding:4px 8px;font-size:12px;" value="${c.name}" onchange="currencies[${i}].name=this.value"></td>
+      <td><input type="text" class="form-input" style="padding:4px 8px;font-size:12px;" value="${c.name}" onchange="currencies[${i}].name=this.value; saveCurrencies();"></td>
       <td><span style="color:var(--accent-blue);font-weight:700;">${c.rate}</span></td>
       <td>
-        <button class="btn-action" onclick="editCurrency(${i})">✏️</button>
-        <button class="btn-action" onclick="deleteCurrency(${i})">🗑️</button>
+        <button class="btn-action" onclick="deleteCurrency(${i})" title="Remover">🗑️</button>
       </td>
     </tr>
   `).join('');
 }
 
-function addCurrencyPrompt() {
-  let pair = prompt('Digite o par da moeda (ex: ETH-BRL, GBP-BRL, CAD-BRL):');
-  if (pair && pair.includes('-')) {
-    currencies.push({ c1: pair.toUpperCase(), c2: pair.split('-')[0].toUpperCase(), name: pair.split('-')[0], rate: 'R$ --', flag: '💰' });
-    renderCurrencies();
-    saveCurrencies();
+function addPresetCurrency() {
+  let val = document.getElementById('currencyPreset').value;
+  let [pair, name, flag] = val.split('|');
+  if (currencies.some(c => c.c1 === pair)) {
+    toast('Essa moeda já está na lista!');
+    return;
   }
-}
-
-function editCurrency(i) {
-  let pair = prompt('Editar par de moedas:', currencies[i].c1);
-  if (pair) {
-    currencies[i].c1 = pair.toUpperCase();
-    currencies[i].c2 = pair.split('-')[0].toUpperCase();
-    renderCurrencies();
-    saveCurrencies();
+  if (currencies.length >= 6) {
+    toast('Limite de 6 moedas atingido!');
+    return;
   }
+  currencies.push({ c1: pair, c2: pair.split('-')[0], name: name, rate: 'R$ --', flag: flag });
+  renderCurrencies();
+  saveCurrencies();
 }
 
 function deleteCurrency(i) {
-  if (confirm('Remover ' + currencies[i].c1 + '?')) {
-    currencies.splice(i, 1);
-    renderCurrencies();
-    saveCurrencies();
-  }
+  currencies.splice(i, 1);
+  renderCurrencies();
+  saveCurrencies();
 }
 
 async function saveCurrencies() {
@@ -568,63 +638,88 @@ async function saveCurrencies() {
     }
   }
   await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  toast('Moedas atualizadas!');
+  toast('Moedas salvas no ESP32!');
 }
 
-async function saveLocation() {
-  let city = document.getElementById('city').value;
-  let r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city + ', Brasil')}`);
-  let j = await r.json();
-  let lat = -21.2461, lon = -44.9992;
-  if (j && j.length > 0) {
-    lat = parseFloat(j[0].lat);
-    lon = parseFloat(j[0].lon);
-  }
-  await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ city, lat, lon }) });
-  toast('Localização salva com sucesso!');
-}
-
-async function saveWifi() {
-  let ssid = document.getElementById('ssid').value;
-  let pass = document.getElementById('pass').value;
-  await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ssid, pass }) });
-  toast('Wi-Fi salvo! O ESP32 irá conectar.');
-}
-
+// REDES WIFI
 async function scanWifi() {
   let list = document.getElementById('wifiList');
-  list.innerHTML = '<div style="padding:10px;font-size:12px;color:var(--text-muted);">Buscando redes...</div>';
+  let btn = document.getElementById('btnScan');
+  btn.disabled = true;
+  btn.textContent = 'Buscando...';
+  list.innerHTML = '<div style="padding:10px;font-size:12px;color:var(--text-muted);text-align:center;">🔍 Escaneando redes ao alcance...</div>';
   try {
     let r = await fetch('/api/scan');
     let j = await r.json();
-    list.innerHTML = j.map(n => `
-      <div class="wifi-row" onclick="selectWifi('${n.ssid}')">
-        <span>${n.ssid || '(Oculta)'}</span>
-        <span class="wifi-signal">📶 ${n.rssi}dBm</span>
-      </div>
-    `).join('');
+    if (!j.length) {
+      list.innerHTML = '<div style="padding:10px;font-size:12px;color:var(--text-muted);text-align:center;">Nenhuma rede encontrada</div>';
+    } else {
+      list.innerHTML = j.map(n => `
+        <div class="wifi-row" onclick="selectWifi('${n.ssid}')">
+          <span>📶 <b>${n.ssid || '(Oculta)'}</b></span>
+          <span class="wifi-signal">${n.rssi} dBm</span>
+        </div>
+      `).join('');
+    }
   } catch (e) {
-    list.innerHTML = '<div style="padding:10px;font-size:12px;color:var(--text-muted);">Erro ao escanear.</div>';
+    list.innerHTML = '<div style="padding:10px;font-size:12px;color:var(--accent-red);text-align:center;">Erro ao escanear redes.</div>';
   }
+  btn.disabled = false;
+  btn.textContent = '🔍 Buscar Redes';
 }
 
 function selectWifi(ssid) {
   document.getElementById('ssid').value = ssid;
   document.getElementById('pass').focus();
-  toast('Rede ' + ssid + ' selecionada');
+  toast('Rede "' + ssid + '" selecionada! Digite a senha.');
 }
 
+async function saveWifi() {
+  let ssid = document.getElementById('ssid').value;
+  let pass = document.getElementById('pass').value;
+  if (!ssid) {
+    toast('Digite o nome da rede Wi-Fi!');
+    return;
+  }
+  toast('Salvando e conectando ao Wi-Fi...');
+  await fetch('/api/config', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ssid: ssid, pass: pass })
+  });
+  toast('Wi-Fi salvo! O ESP32 está conectando...');
+}
+
+// BRILHO E TEMA (SINCRONIZADO DISPLAY + WEB)
+let brightTimeout = null;
 function updateBright(v) {
   document.getElementById('brightVal').textContent = v;
-  fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bright: parseInt(v) }) });
+  clearTimeout(brightTimeout);
+  brightTimeout = setTimeout(() => {
+    fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bright: parseInt(v) }) });
+  }, 100);
 }
 
-function toggleTheme() {
-  let cur = document.documentElement.getAttribute('data-theme');
-  let next = cur === 'light' ? 'dark' : 'light';
-  if (next === 'light') document.documentElement.setAttribute('data-theme', 'light');
-  else document.documentElement.removeAttribute('data-theme');
-  document.getElementById('themeBtn').textContent = next === 'light' ? '☀️ Modo Claro' : '🌙 Modo Escuro';
+function applyTheme(isLight) {
+  isLightMode = isLight;
+  if (isLight) {
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.getElementById('themeBtn').textContent = '☀️ Modo Claro';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    document.getElementById('themeBtn').textContent = '🌙 Modo Escuro';
+  }
+}
+
+async function toggleTheme() {
+  isLightMode = !isLightMode;
+  applyTheme(isLightMode);
+  await fetch('/api/config', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ dlight: isLightMode ? 1 : 0 })
+  });
+  toast('Tema ' + (isLightMode ? 'Claro' : 'Escuro') + ' aplicado na tela do ESP32!');
 }
 
 async function triggerOta() {
@@ -700,14 +795,15 @@ async function loadConfig() {
   try {
     let r = await fetch('/api/config');
     let j = await r.json();
-    document.getElementById('city').value = j.city || 'Lavras, MG';
+    document.getElementById('cityInput').value = j.city || 'Lavras, MG';
     document.getElementById('ssid').value = j.ssid || '';
     document.getElementById('bright').value = j.bright || 180;
     document.getElementById('brightVal').textContent = j.bright || 180;
+    applyTheme(j.dlight === true || j.dlight === 1);
 
     currencies = [];
-    let flags = { 'USD-BRL': '🇺🇸', 'EUR-BRL': '🇪🇺', 'BTC-BRL': '₿', 'ETH-BRL': 'Ξ' };
-    let names = { 'USD-BRL': 'Dólar', 'EUR-BRL': 'Euro', 'BTC-BRL': 'Bitcoin', 'ETH-BRL': 'Ethereum' };
+    let flags = { 'USD-BRL': '🇺🇸', 'EUR-BRL': '🇪🇺', 'BTC-BRL': '₿', 'ETH-BRL': 'Ξ', 'USDT-BRL': '₮', 'GBP-BRL': '🇬🇧', 'CAD-BRL': '🇨🇦', 'CHF-BRL': '🇨🇭', 'JPY-BRL': '🇯🇵', 'ARS-BRL': '🇦🇷', 'SOL-BRL': '◎' };
+    let names = { 'USD-BRL': 'Dólar', 'EUR-BRL': 'Euro', 'BTC-BRL': 'Bitcoin', 'ETH-BRL': 'Ethereum', 'USDT-BRL': 'Tether', 'GBP-BRL': 'Libra', 'CAD-BRL': 'Dólar Can.', 'CHF-BRL': 'Franco Suíço', 'JPY-BRL': 'Iene', 'ARS-BRL': 'Peso Arg.', 'SOL-BRL': 'Solana' };
     for (let i = 1; i <= 6; i++) {
       if (j['c' + i] && j['c' + i + 'en']) {
         let pair = j['c' + i];
@@ -731,7 +827,7 @@ async function loadConfig() {
   } catch (e) {}
 }
 
-renderCurrencies();
+loadCitiesByState('MG');
 loadConfig();
 loadData();
 setInterval(loadData, 5000);
@@ -814,8 +910,12 @@ void handlePostConfig() {
   if (doc["tz"].is<int>()) gConfig.tz_offset = doc["tz"].as<int>();
   if (doc["dint"].is<int>()) gConfig.dolar_interval = doc["dint"].as<int>();
   if (doc["wint"].is<int>()) gConfig.weather_interval = doc["wint"].as<int>();
+
   if (doc["dlight"].is<int>()) {
     gConfig.display_light = (doc["dlight"].as<int>() == 1);
+    gNeedsRebuild = true;
+  } else if (doc["dlight"].is<bool>()) {
+    gConfig.display_light = doc["dlight"].as<bool>();
     gNeedsRebuild = true;
   }
 
@@ -828,9 +928,11 @@ void handlePostConfig() {
   if (doc["ssid"].is<const char*>()) {
     String ns = doc["ssid"].as<String>();
     String np = doc["pass"].is<const char*>() ? doc["pass"].as<String>() : "";
-    if (ns != gConfig.wifi_ssid || np.length() > 0) {
+    if (ns.length() > 0) {
       ns.toCharArray(gConfig.wifi_ssid, sizeof(gConfig.wifi_ssid));
-      if (np.length() > 0) np.toCharArray(gConfig.wifi_pass, sizeof(gConfig.wifi_pass));
+      if (np.length() > 0) {
+        np.toCharArray(gConfig.wifi_pass, sizeof(gConfig.wifi_pass));
+      }
       wifiChanged = true;
     }
   }
@@ -839,8 +941,10 @@ void handlePostConfig() {
   gNeedsRebuild = true;
 
   if (wifiChanged) {
-    webServer.send(200, "application/json; charset=UTF-8", "{\"msg\":\"WiFi alterado, reconectando...\"}");
-    delay(500);
+    webServer.send(200, "application/json; charset=UTF-8", "{\"msg\":\"WiFi alterado! Conectando...\"}");
+    delay(300);
+    WiFi.disconnect();
+    delay(200);
     WiFi.begin(gConfig.wifi_ssid, gConfig.wifi_pass);
   } else {
     webServer.send(200, "application/json; charset=UTF-8", "{\"msg\":\"Salvo com sucesso! Painel atualizado\"}");
@@ -876,20 +980,23 @@ void handleGetData() {
 }
 
 void handleScan() {
-  int n = WiFi.scanNetworks();
+  Serial.println("[WiFi] Escaneando redes...");
+  int n = WiFi.scanNetworks(false, true);
+  if (n < 0) n = 0;
   JsonDocument doc;
   JsonArray arr = doc.to<JsonArray>();
   for (int i = 0; i < n; i++) {
     JsonObject o = arr.add<JsonObject>();
     o["ssid"] = WiFi.SSID(i);
     o["rssi"] = WiFi.RSSI(i);
-    o["encryption"] = WiFi.encryptionType(i) == WIFI_AUTH_OPEN ? "open" : "wpa";
+    o["encryption"] = (WiFi.encryptionType(i) == WIFI_AUTH_OPEN) ? "open" : "wpa";
     o["channel"] = WiFi.channel(i);
   }
   String out;
   serializeJson(arr, out);
   webServer.send(200, "application/json; charset=UTF-8", out);
   WiFi.scanDelete();
+  Serial.printf("[WiFi] Scan finalizado: %d redes encontradas\n", n);
 }
 
 void handleVersion() {
