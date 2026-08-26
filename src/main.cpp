@@ -27,6 +27,7 @@ static lv_obj_t *weather_desc_label = nullptr;
 static lv_obj_t *weather_humidity_label = nullptr;
 static lv_obj_t *weather_wind_label = nullptr;
 static lv_obj_t *weather_icon_box = nullptr;
+static lv_obj_t *version_badge = nullptr;
 
 // UI Widgets - Right Panel (Moedas)
 static lv_obj_t *moeda_cards[6] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
@@ -41,7 +42,7 @@ static lv_obj_t *dolar_label = nullptr;
 static String moedaValues[6] = {"R$ --,--", "R$ --,--", "R$ --,--", "R$ --,--", "R$ --,--", "R$ --,--"};
 static String moedaPcts[6] = {"--", "--", "--", "--", "--", "--"};
 static bool moedaPctPos[6] = {true, true, true, true, true, true};
-String dolarValue = "R$ --,--"; // alias para moedaValues[0] e /api/data
+String dolarValue = "R$ --,--";
 String weatherTemp = "--";
 String weatherDesc = "----";
 String weatherCity = "Sao Paulo";
@@ -94,14 +95,13 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
     lv_obj_t *flag = lv_obj_create(parent);
     lv_obj_set_size(flag, 42, 28);
     lv_obj_set_pos(flag, 0, 0);
-    lv_obj_set_style_bg_color(flag, lv_color_hex(0xDC2626), 0); // Vermelho
+    lv_obj_set_style_bg_color(flag, lv_color_hex(0xDC2626), 0);
     lv_obj_set_style_radius(flag, 4, 0);
     lv_obj_set_style_border_width(flag, 1, 0);
     lv_obj_set_style_border_color(flag, lv_color_hex(0x475569), 0);
     lv_obj_set_style_pad_all(flag, 0, 0);
     lv_obj_clear_flag(flag, LV_OBJ_FLAG_SCROLLABLE);
 
-    // Listras brancas
     for (int s = 0; s < 3; s++) {
       lv_obj_t *stripe = lv_obj_create(flag);
       lv_obj_set_size(stripe, 42, 4);
@@ -111,7 +111,6 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
       lv_obj_set_style_border_width(stripe, 0, 0);
     }
 
-    // Cantão azul
     lv_obj_t *canton = lv_obj_create(flag);
     lv_obj_set_size(canton, 20, 15);
     lv_obj_set_pos(canton, 0, 0);
@@ -119,7 +118,6 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
     lv_obj_set_style_radius(canton, 0, 0);
     lv_obj_set_style_border_width(canton, 0, 0);
 
-    // Estrelas (pontos brancos)
     lv_obj_t *star = lv_obj_create(canton);
     lv_obj_set_size(star, 4, 4);
     lv_obj_align(star, LV_ALIGN_CENTER, 0, 0);
@@ -128,18 +126,17 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
     lv_obj_set_style_border_width(star, 0, 0);
   }
   else if (strstr(pair, "EUR")) {
-    // Bandeira da União Europeia: fundo azul + círculo de estrelas amarelas
+    // Bandeira da União Europeia: fundo azul + círculo dourado
     lv_obj_t *flag = lv_obj_create(parent);
     lv_obj_set_size(flag, 42, 28);
     lv_obj_set_pos(flag, 0, 0);
-    lv_obj_set_style_bg_color(flag, lv_color_hex(0x003399), 0); // Azul UE
+    lv_obj_set_style_bg_color(flag, lv_color_hex(0x003399), 0);
     lv_obj_set_style_radius(flag, 4, 0);
     lv_obj_set_style_border_width(flag, 1, 0);
     lv_obj_set_style_border_color(flag, lv_color_hex(0x475569), 0);
     lv_obj_set_style_pad_all(flag, 0, 0);
     lv_obj_clear_flag(flag, LV_OBJ_FLAG_SCROLLABLE);
 
-    // Anel de estrelas / símbolo central
     lv_obj_t *ring = lv_obj_create(flag);
     lv_obj_set_size(ring, 16, 16);
     lv_obj_align(ring, LV_ALIGN_CENTER, 0, 0);
@@ -156,11 +153,11 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
     lv_obj_set_style_border_width(dot, 0, 0);
   }
   else if (strstr(pair, "BTC")) {
-    // Emblema Bitcoin: círculo laranja com "₿" ou "B"
+    // Emblema Bitcoin: círculo laranja com "B"
     lv_obj_t *circle = lv_obj_create(parent);
     lv_obj_set_size(circle, 38, 38);
     lv_obj_align(circle, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_set_style_bg_color(circle, lv_color_hex(0xF7931A), 0); // Laranja Bitcoin
+    lv_obj_set_style_bg_color(circle, lv_color_hex(0xF7931A), 0);
     lv_obj_set_style_radius(circle, LV_RADIUS_CIRCLE, 0);
     lv_obj_set_style_border_width(circle, 0, 0);
     lv_obj_set_style_shadow_width(circle, 10, 0);
@@ -176,7 +173,6 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
     lv_obj_align(sym, LV_ALIGN_CENTER, 0, 0);
   }
   else if (strstr(pair, "ETH")) {
-    // Emblema Ethereum: círculo azul/roxo com "Ξ"
     lv_obj_t *circle = lv_obj_create(parent);
     lv_obj_set_size(circle, 38, 38);
     lv_obj_align(circle, LV_ALIGN_CENTER, 0, 0);
@@ -193,7 +189,6 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
     lv_obj_align(sym, LV_ALIGN_CENTER, 0, 0);
   }
   else {
-    // Genérico
     lv_obj_t *circle = lv_obj_create(parent);
     lv_obj_set_size(circle, 38, 38);
     lv_obj_align(circle, LV_ALIGN_CENTER, 0, 0);
@@ -213,7 +208,7 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
   }
 }
 
-// Renderizador do Ícone de Clima (Sol atrás de nuvem com estética vetorizada)
+// Renderizador do Ícone de Clima (Sol atrás de nuvem)
 void render_weather_icon(lv_obj_t *parent, int wcode) {
   if (!parent) return;
   lv_obj_clean(parent);
@@ -237,7 +232,6 @@ void render_weather_icon(lv_obj_t *parent, int wcode) {
     lv_obj_set_style_shadow_opa(sun, 180, 0);
     lv_obj_clear_flag(sun, LV_OBJ_FLAG_SCROLLABLE);
 
-    // Raios do sol (pequenos detalhes sutis)
     for (int r = 0; r < 4; r++) {
       lv_obj_t *ray = lv_obj_create(parent);
       lv_obj_set_size(ray, 4, 4);
@@ -252,11 +246,10 @@ void render_weather_icon(lv_obj_t *parent, int wcode) {
     }
   }
 
-  // 2. Nuvem (composta por formas brancas/cinza suave sobrepostas)
+  // 2. Nuvem
   if (!isSunnyOnly) {
     lv_color_t cloudCol = (isThunder || (wcode >= 61 && wcode <= 67)) ? lv_color_hex(0x94A3B8) : lv_color_hex(0xE2E8F0);
 
-    // Base alongada da nuvem
     lv_obj_t *cBase = lv_obj_create(parent);
     lv_obj_set_size(cBase, 48, 22);
     lv_obj_set_pos(cBase, 2, 24);
@@ -268,7 +261,6 @@ void render_weather_icon(lv_obj_t *parent, int wcode) {
     lv_obj_set_style_shadow_opa(cBase, 60, 0);
     lv_obj_clear_flag(cBase, LV_OBJ_FLAG_SCROLLABLE);
 
-    // Cúpula 1 da nuvem (esquerda/meio)
     lv_obj_t *cDome1 = lv_obj_create(parent);
     lv_obj_set_size(cDome1, 24, 24);
     lv_obj_set_pos(cDome1, 10, 12);
@@ -277,7 +269,6 @@ void render_weather_icon(lv_obj_t *parent, int wcode) {
     lv_obj_set_style_border_width(cDome1, 0, 0);
     lv_obj_clear_flag(cDome1, LV_OBJ_FLAG_SCROLLABLE);
 
-    // Cúpula 2 da nuvem (direita)
     lv_obj_t *cDome2 = lv_obj_create(parent);
     lv_obj_set_size(cDome2, 18, 18);
     lv_obj_set_pos(cDome2, 28, 16);
@@ -314,11 +305,10 @@ void create_ui() {
   lv_obj_t *scr = lv_scr_act();
   lv_obj_clean(scr);
 
-  // Paleta de Cores Moderna Dark Dashboard
-  lv_color_t colBg = lv_color_hex(0x0A0F1D);       // Fundo escuro profundo
+  lv_color_t colBg = lv_color_hex(0x0A0F1D);       // Fundo escuro
   lv_color_t colCard = lv_color_hex(0x0F172A);     // Fundo do container esquerdo
   lv_color_t colCardRight = lv_color_hex(0x111C2E);// Fundo dos cards de moedas
-  lv_color_t colBorder = lv_color_hex(0x1E293B);   // Borda sutil elegante
+  lv_color_t colBorder = lv_color_hex(0x1E293B);   // Borda sutil
   lv_color_t colHeaderGold = lv_color_hex(0xF6C343); // Amarelo/Dourado do título
   lv_color_t colWhite = lv_color_hex(0xFFFFFF);    // Branco principal
   lv_color_t colMuted = lv_color_hex(0x94A3B8);    // Cinza suave para legendas
@@ -416,26 +406,30 @@ void create_ui() {
   lv_obj_set_style_bg_color(wifi_dot, WiFi.status() == WL_CONNECTED ? lv_color_hex(0x00E676) : lv_color_hex(0xFF5252), 0);
   lv_obj_set_style_radius(wifi_dot, LV_RADIUS_CIRCLE, 0);
   lv_obj_set_style_border_width(wifi_dot, 0, 0);
-  lv_obj_set_pos(wifi_dot, 18, 400);
+  lv_obj_set_pos(wifi_dot, 18, 404);
 
   status_label = lv_label_create(left_panel);
   if (WiFi.status() == WL_CONNECTED) {
     char buf[64];
-    snprintf(buf, sizeof(buf), "WiFi Conectado (%s)", WiFi.localIP().toString().c_str());
+    snprintf(buf, sizeof(buf), "WiFi: %s", WiFi.localIP().toString().c_str());
     lv_label_set_text(status_label, buf);
   } else {
-    lv_label_set_text(status_label, "AP: Painel-Config (192.168.4.1)");
+    lv_label_set_text(status_label, "AP: Painel-Config");
   }
   lv_obj_set_style_text_font(status_label, &lv_font_montserrat_12, 0);
   lv_obj_set_style_text_color(status_label, colMuted, 0);
-  lv_obj_set_pos(status_label, 34, 396);
+  lv_obj_set_pos(status_label, 34, 400);
 
+  // 10. Ícone / Badge discreto de versão do Firmware na tela do ESP32
+  version_badge = lv_label_create(left_panel);
+  lv_label_set_text(version_badge, "v" FIRMWARE_VERSION);
+  lv_obj_set_style_text_font(version_badge, &lv_font_montserrat_12, 0);
+  lv_obj_set_style_text_color(version_badge, lv_color_hex(0x64748B), 0);
+  lv_obj_align(version_badge, LV_ALIGN_BOTTOM_RIGHT, -14, -6);
 
   // ==========================================
   // PAINEL DIREITO: COTAÇÃO DE MOEDAS (385 x 444)
   // ==========================================
-
-  // Título Dourado "COTAÇÃO DE MOEDAS"
   lv_obj_t *moeda_title = lv_label_create(scr);
   lv_label_set_text(moeda_title, "COTAÇÃO DE MOEDAS");
   lv_obj_set_style_text_font(moeda_title, &lv_font_montserrat_20, 0);
@@ -443,7 +437,6 @@ void create_ui() {
   lv_obj_set_style_text_letter_space(moeda_title, 2, 0);
   lv_obj_align(moeda_title, LV_ALIGN_TOP_MID, 195, 20);
 
-  // Lista de Pares e Flags Habilitadas
   const char* pairs[6] = {gConfig.currency_1, gConfig.currency_2, gConfig.currency_3, gConfig.currency_4, gConfig.currency_5, gConfig.currency_6};
   bool enabled[6] = {gConfig.curr1_enabled, gConfig.curr2_enabled, gConfig.curr3_enabled, gConfig.curr4_enabled, gConfig.curr5_enabled, gConfig.curr6_enabled};
 
@@ -455,7 +448,6 @@ void create_ui() {
   for (int i = 0; i < 6 && cardIdx < 3; i++) {
     if (!enabled[i]) continue;
 
-    // Card Individual de Moeda
     lv_obj_t *card = lv_obj_create(scr);
     lv_obj_set_pos(card, 400, cardY);
     lv_obj_set_size(card, 382, cardH);
@@ -468,7 +460,7 @@ void create_ui() {
     lv_obj_clear_flag(card, LV_OBJ_FLAG_SCROLLABLE);
     moeda_cards[cardIdx] = card;
 
-    // 1. Ícone / Bandeira à Esquerda
+    // Ícone / Bandeira
     lv_obj_t *iconBox = lv_obj_create(card);
     lv_obj_set_size(iconBox, 44, 38);
     lv_obj_align(iconBox, LV_ALIGN_LEFT_MID, 6, 0);
@@ -479,7 +471,7 @@ void create_ui() {
     render_currency_icon(iconBox, pairs[i]);
     moeda_icon_boxes[cardIdx] = iconBox;
 
-    // 2. Par de Moedas (ex: "USD/BRL")
+    // Par de Moedas
     String pStr = String(pairs[i]);
     pStr.replace("-", "/");
     lv_obj_t *pairLbl = lv_label_create(card);
@@ -489,7 +481,7 @@ void create_ui() {
     lv_obj_set_pos(pairLbl, 66, 16);
     moeda_pair_labels[cardIdx] = pairLbl;
 
-    // 3. Subtítulo (ex: "Dólar", "Euro", "Bitcoin")
+    // Subtítulo
     lv_obj_t *subLbl = lv_label_create(card);
     lv_label_set_text(subLbl, get_currency_friendly_name(pairs[i]));
     lv_obj_set_style_text_font(subLbl, &lv_font_montserrat_14, 0);
@@ -497,7 +489,7 @@ void create_ui() {
     lv_obj_set_pos(subLbl, 66, 52);
     moeda_sub_labels[cardIdx] = subLbl;
 
-    // 4. Preço / Valor (ex: "R$ 4,92", "R$ 171.450")
+    // Preço / Valor
     lv_obj_t *valLbl = lv_label_create(card);
     lv_label_set_text(valLbl, moedaValues[i].c_str());
     lv_obj_set_style_text_font(valLbl, &lv_font_montserrat_20, 0);
@@ -506,7 +498,7 @@ void create_ui() {
     moeda_value_labels[cardIdx] = valLbl;
     if (cardIdx == 0) dolar_label = valLbl;
 
-    // 5. Variação Percentual (ex: "+0.35% ▲", "-0.12% ▼")
+    // Variação Percentual
     lv_obj_t *pctLbl = lv_label_create(card);
     lv_label_set_text(pctLbl, moedaPcts[i].c_str());
     lv_obj_set_style_text_font(pctLbl, &lv_font_montserrat_14, 0);
@@ -518,7 +510,6 @@ void create_ui() {
     cardIdx++;
   }
 
-  // Limpa referências não usadas
   for (int i = cardIdx; i < 6; i++) {
     moeda_cards[i] = nullptr;
     moeda_pair_labels[i] = nullptr;
@@ -534,7 +525,6 @@ void update_clock(lv_timer_t *timer) {
   struct tm timeinfo;
   if (getLocalTime(&timeinfo)) {
     char timeStr[16];
-    // Formato limpo HH:MM exatamente como na foto de referência
     snprintf(timeStr, sizeof(timeStr), "%02d:%02d", timeinfo.tm_hour, timeinfo.tm_min);
 
     static const char *weekdays[] = {"DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"};
@@ -560,7 +550,6 @@ String format_currency_value(float val) {
     }
   } else {
     snprintf(buf, sizeof(buf), "R$ %.2f", val);
-    // Troca ponto por vírgula no padrão brasileiro
     char *dot = strchr(buf, '.');
     if (dot) *dot = ',';
   }
@@ -611,7 +600,6 @@ void update_dolar(lv_timer_t *timer) {
             } else {
               snprintf(pctBuf, sizeof(pctBuf), "%.2f%%", pct);
             }
-            // Troca ponto por vírgula
             char *pdot = strchr(pctBuf, '.');
             if (pdot) *pdot = ',';
 
@@ -651,7 +639,7 @@ void update_dolar(lv_timer_t *timer) {
   http.end();
 }
 
-// Atualização do Clima (Open-Meteo com temperatura, umidade, vento e ícone)
+// Atualização do Clima
 void update_weather(lv_timer_t *timer) {
   if (WiFi.status() != WL_CONNECTED) return;
 
@@ -681,7 +669,7 @@ void update_weather(lv_timer_t *timer) {
         temp = doc["current_weather"]["temperature"].as<float>();
         wcode = doc["current_weather"]["weathercode"].as<int>();
         wind = doc["current_weather"]["windspeed"].as<float>();
-        humidity = 64; // fallback
+        humidity = 64;
       }
 
       currentWeatherCode = wcode;
@@ -725,7 +713,7 @@ void update_weather(lv_timer_t *timer) {
         render_weather_icon(weather_icon_box, currentWeatherCode);
       }
 
-      Serial.printf("Clima Atualizado: %s, %s, %s, %s @ %s\n",
+      Serial.printf("Clima: %s, %s, %s, %s @ %s\n",
                     weatherTemp.c_str(), weatherDesc.c_str(), weatherHumidity.c_str(), weatherWind.c_str(), weatherCity.c_str());
     } else {
       Serial.println("Erro ao parsear clima JSON");
@@ -749,10 +737,9 @@ void setup() {
   tft.setBrightness(gConfig.brightness);
   tft.fillScreen(TFT_BLACK);
 
-  // Single buffer no interno reduz piscada (double PSRAM causa tearing no RGB)
   buf1 = (lv_color_t *)heap_caps_malloc(800 * BUF_LINES * sizeof(lv_color_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
   if (!buf1) buf1 = (lv_color_t *)heap_caps_malloc(800 * BUF_LINES * sizeof(lv_color_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-  buf2 = nullptr; // single buffer = sem tearing
+  buf2 = nullptr;
   lv_disp_draw_buf_init(&draw_buf, buf1, buf2, 800 * BUF_LINES);
 
   static lv_disp_drv_t disp_drv;
@@ -777,17 +764,15 @@ void setup() {
   WiFi.softAPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
   bool apOk = WiFi.softAP("Painel-Config", "12345678");
   if (!apOk) {
-    Serial.println("[WiFi] softAP falhou na 1a tentativa, retry...");
     delay(300);
     apOk = WiFi.softAP("Painel-Config", "12345678");
   }
-  Serial.printf("[WiFi] AP Painel-Config %s | IP do AP: %s\n", apOk ? "OK" : "FALHOU", WiFi.softAPIP().toString().c_str());
+  Serial.printf("[WiFi] AP Painel-Config %s | IP: %s\n", apOk ? "OK" : "FALHOU", WiFi.softAPIP().toString().c_str());
 
-  // Servidor Web + Captive Portal
   webServerInit();
 
   if (gConfig.wifi_ssid[0] == '\0') {
-    Serial.println("[WiFi] Nenhuma rede salva - apenas portal de config");
+    Serial.println("[WiFi] Nenhuma rede salva - portal ativo");
   } else {
     Serial.printf("[WiFi] Conectando em '%s' ...\n", gConfig.wifi_ssid);
     WiFi.begin(gConfig.wifi_ssid, gConfig.wifi_pass);
@@ -805,27 +790,17 @@ void setup() {
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    if (wifi_dot) {
-      lv_obj_set_style_bg_color(wifi_dot, lv_color_hex(0x00E676), 0);
-    }
+    if (wifi_dot) lv_obj_set_style_bg_color(wifi_dot, lv_color_hex(0x00E676), 0);
     if (status_label) {
       char buf[64];
-      snprintf(buf, sizeof(buf), "WiFi Conectado (%s)", WiFi.localIP().toString().c_str());
+      snprintf(buf, sizeof(buf), "WiFi: %s", WiFi.localIP().toString().c_str());
       lv_label_set_text(status_label, buf);
     }
     Serial.println(String("WiFi conectado! IP: ") + WiFi.localIP().toString());
   } else {
-    if (wifi_dot) {
-      lv_obj_set_style_bg_color(wifi_dot, lv_color_hex(0xFF5252), 0);
-    }
-    if (status_label) {
-      lv_label_set_text(status_label, "AP: Painel-Config (192.168.4.1)");
-    }
-    Serial.println("Sem WiFi - use o portal http://192.168.4.1/");
+    if (wifi_dot) lv_obj_set_style_bg_color(wifi_dot, lv_color_hex(0xFF5252), 0);
+    if (status_label) lv_label_set_text(status_label, "AP: Painel-Config");
   }
-
-  Serial.printf("[Web] Portal config: http://192.168.4.1/  |  STA: http://%s/\n",
-                WiFi.localIP().toString().c_str());
 
   configTime(gConfig.tz_offset * 3600, 0, "pool.ntp.org", "time.nist.gov");
 
@@ -846,7 +821,6 @@ void setup() {
   update_weather(NULL);
   update_clock(NULL);
 
-  // OTA auto
   otaInit();
   if (WiFi.status() == WL_CONNECTED) {
     lv_timer_create([](lv_timer_t* t){ otaCheck(true); }, 15000, NULL);
@@ -863,7 +837,7 @@ void loop() {
     update_clock(NULL);
     if (WiFi.status() == WL_CONNECTED) {
       char buf[64];
-      snprintf(buf, sizeof(buf), "WiFi Conectado (%s)", WiFi.localIP().toString().c_str());
+      snprintf(buf, sizeof(buf), "WiFi: %s", WiFi.localIP().toString().c_str());
       if (status_label) lv_label_set_text(status_label, buf);
     }
   }

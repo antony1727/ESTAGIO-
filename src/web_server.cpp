@@ -23,520 +23,630 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Painel Financeiro</title>
+<title>SMART DASHBOARD Web Configurator</title>
 <style>
-:root{--bg:#070A12;--card:#12121A;--card2:#0F1622;--accent:#22D3EE;--yellow:#FFB300;--green:#00E676;--red:#FF5252;--text:#F8FAFC;--muted:#7A8699;--border:#1E2A3A}
-[data-theme="light"]{--bg:#EEF2F7;--card:#FFFFFF;--card2:#F1F5F9;--text:#0F172A;--muted:#64748B;--border:#E2E8F0}
-[data-theme="light"] body{background:radial-gradient(1200px 600px at 20% -10%, #dbeafe 0%, transparent 50%), linear-gradient(180deg,#F8FAFC,#EEF2F7)}
-*{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,sans-serif}
-body{margin:0;background:radial-gradient(1200px 600px at 20% -10%, #1a2a44 0%, transparent 50%), linear-gradient(180deg,#070A12,#0E1420);color:var(--text);padding:16px;min-height:100vh}
-[data-theme="light"] .card{box-shadow:0 8px 20px rgba(0,0,0,.08)}
-[data-theme="light"] .top h1{color:#0F172A}
-.top{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.top h1{font-size:22px;margin:0;letter-spacing:1px}
-.top small{color:var(--muted);font-size:12px}
-.badge{padding:6px 10px;border-radius:20px;font-size:11px;font-weight:800;border:1px solid}
-.badge.ok{background:rgba(0,230,118,.12);color:var(--green);border-color:var(--green)}
-.badge.off{background:rgba(255,82,82,.12);color:var(--red);border-color:var(--red)}
-.tabs{max-width:1200px;margin:16px auto 0;display:flex;gap:8px;overflow:auto;padding-bottom:4px}
-.tab{padding:10px 14px;border-radius:999px;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;white-space:nowrap;font-weight:700;font-size:13px}
-.tab.active{background:var(--accent);color:#000;border-color:var(--accent)}
-.grid{max-width:1200px;margin:14px auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;position:relative;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35)}
-.card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px}
-.card.accent::before{background:var(--accent)} .card.green::before{background:var(--green)} .card.yellow::before{background:var(--yellow)}
-.card h2{font-size:12px;letter-spacing:2px;margin:0 0 12px;color:var(--accent)} .card.green h2{color:var(--green)} .card.yellow h2{color:var(--yellow)}
-label{font-size:11px;color:var(--muted);display:block;margin:10px 0 5px;letter-spacing:.3px}
-input,select{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:14px;outline:none}
-input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(34,211,238,.15)}
-.row{display:flex;gap:10px} .row>div{flex:1}
-.switch{position:relative;width:44px;height:26px;background:#1E2A3A;border-radius:999px;cursor:pointer;transition:.2s}
-.switch.on{background:var(--green)}
-.knob{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s}
-.switch.on .knob{left:21px}
-.line{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:12px;background:var(--card2);margin:6px 0}
-.preview{font-size:12px;color:var(--muted);margin-top:4px;min-height:16px}
-.btn{border:0;padding:12px 14px;border-radius:12px;font-weight:800;cursor:pointer;width:100%;margin-top:10px;font-size:13px}
-.btn-accent{background:var(--accent);color:#000} .btn-green{background:var(--green);color:#000} .btn-dark{background:#1E2A3A;color:var(--text)}
-.kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #1E2A3A;font-size:13px}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.chip{padding:6px 10px;border-radius:999px;background:#0F1622;border:1px solid var(--border);font-size:12px;cursor:pointer;color:var(--muted)}
-.chip:hover{border-color:var(--accent);color:var(--text)}
-.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#0F1622;border:1px solid var(--border);padding:10px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5);display:none;z-index:99}
-.suggest{position:absolute;top:100%;left:0;right:0;background:#0F1622;border:1px solid var(--border);border-radius:12px;max-height:160px;overflow:auto;z-index:10;display:none}
-.suggest div{padding:8px 10px;cursor:pointer;font-size:13px;border-bottom:1px solid #1E2A3A}
-.suggest div:hover{background:#1E2A3A}
-.hidden{display:none!important}
-.wifi-item{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:12px;background:var(--card2);margin:6px 0;cursor:pointer}
-.wifi-item:hover{border-color:var(--accent)}
-.wifi-item b{flex:1}
-.rssi{font-size:11px;color:var(--muted)}
-#globalMirror{transition:.3s;overflow:hidden;height:280px}
-#mirrorScreen{transform:scale(0.55);margin:0}
-@media(max-width:900px){#mirrorScreen{transform:scale(0.40)} #globalMirror{height:200px}}
-@media(max-width:600px){#mirrorScreen{transform:scale(0.28)} #globalMirror{height:145px}}
-@media(max-width:400px){#mirrorScreen{transform:scale(0.22)} #globalMirror{height:115px}}
+:root {
+  --bg-main: #0B111E;
+  --bg-sidebar: #131D2D;
+  --bg-card: #172437;
+  --bg-card-hover: #1C2B42;
+  --bg-input: #0F1726;
+  --border: #22324A;
+  --text-main: #F8FAFC;
+  --text-muted: #8E9DB2;
+  --accent-blue: #38BDF8;
+  --accent-btn: #7DD3FC;
+  --accent-btn-text: #082F49;
+  --accent-green: #22C55E;
+  --accent-red: #EF4444;
+  --accent-gold: #F59E0B;
+}
+[data-theme="light"] {
+  --bg-main: #F1F5F9;
+  --bg-sidebar: #0F172A;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F8FAFC;
+  --bg-input: #F1F5F9;
+  --border: #CBD5E1;
+  --text-main: #0F172A;
+  --text-muted: #64748B;
+  --accent-btn: #0284C7;
+  --accent-btn-text: #FFFFFF;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  display: flex;
+  min-height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 250px;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  flex-shrink: 0;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.brand-logo {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, #0284C7, #38BDF8);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 18px;
+  color: #FFFFFF;
+  letter-spacing: -1px;
+}
+.brand-title {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  line-height: 1.2;
+}
+.brand-title span { display: block; font-size: 11px; font-weight: 600; color: var(--text-muted); }
+
+.nav-list { list-style: none; padding: 18px 12px; display: flex; flex-direction: column; gap: 6px; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.nav-item:hover { background-color: rgba(255,255,255,0.05); color: var(--text-main); }
+.nav-item.active {
+  background-color: #24354D;
+  color: #38BDF8;
+}
+.nav-item svg { width: 18px; height: 18px; fill: currentColor; }
+
+/* MAIN CONTENT */
+.main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
+}
+.top-header {
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.top-header .subtitle { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; }
+.top-header .page-title { font-size: 24px; font-weight: 800; margin-top: 2px; }
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 700;
+}
+.user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #22C55E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+}
+
+/* CONTENT GRID */
+.content-grid {
+  padding: 0 32px 40px;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 20px;
+}
+
+.col-6 { grid-column: span 6; }
+.col-12 { grid-column: span 12; }
+
+@media (max-width: 1024px) {
+  .col-6 { grid-column: span 12; }
+  body { flex-direction: column; }
+  .sidebar { width: 100%; height: auto; }
+}
+
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+.form-input, .form-select {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+}
+.form-input:focus, .form-select:focus { border-color: var(--accent-blue); }
+
+.row-inputs { display: flex; gap: 12px; }
+.row-inputs > div { flex: 1; }
+
+.btn-primary {
+  background-color: var(--accent-btn);
+  color: var(--accent-btn-text);
+  border: none;
+  padding: 11px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: center;
+  transition: opacity 0.2s;
+}
+.btn-primary:hover { opacity: 0.9; }
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+/* LISTAS / STATUS */
+.status-line {
+  display: flex;
+  font-size: 13px;
+  color: var(--text-muted);
+  gap: 8px;
+}
+.status-line b { color: var(--text-main); }
+.status-line span.active { color: var(--accent-green); font-weight: 700; }
+
+.wifi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 140px;
+  overflow-y: auto;
+}
+.wifi-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: var(--bg-input);
+  font-size: 13px;
+  cursor: pointer;
+}
+.wifi-row:hover { background-color: var(--bg-card-hover); }
+.wifi-signal { color: var(--accent-green); font-weight: bold; }
+
+/* TABELA DE MOEDAS */
+.currency-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.currency-table th {
+  text-align: left;
+  padding: 8px;
+  color: var(--text-muted);
+  font-size: 11px;
+  border-bottom: 1px solid var(--border);
+}
+.currency-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.currency-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-action {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  opacity: 0.7;
+}
+.btn-action:hover { opacity: 1; }
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background-color: #1E293B;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-green);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  font-size: 13px;
+  font-weight: 600;
+  display: none;
+  z-index: 100;
+}
 </style>
 </head>
 <body>
-<div class="top">
- <h1>PAINEL FINANCEIRO</h1>
- <small id="sub">Horário e câmbio em tempo real</small>
- <button onclick="toggleTheme()" id="themeBtn" title="Alternar claro/escuro" style="margin-left:auto;background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:999px;cursor:pointer;font-size:12px">🌙 Escuro</button>
- <button id="globalMirrorBtn" onclick="toggleMirror()" style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:999px;cursor:pointer;font-size:12px;font-weight:700">👁️ Tela</button>
- <span id="ipBadge" class="badge ok">IP: --</span>
- <span id="wifiBadge" class="badge ok">WiFi</span>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="brand">
+    <div class="brand-logo">SD</div>
+    <div class="brand-title">SMART<span>DASHBOARD</span></div>
+  </div>
+  <ul class="nav-list">
+    <li class="nav-item active" onclick="switchNav('visao')">
+      <svg viewBox="0 0 24 24"><path d="M4 13h6c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v8c0 .55.45 1 1 1zm0 8h6c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1zm10 0h6c.55 0 1-.45 1-1v-8c0-.55-.45-1-1-1h-6c-.55 0-1 .45-1 1v8c0 .55.45 1 1 1zm0-18v4c0 .55.45 1 1 1h6c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1h-6c-.55 0-1 .45-1 1z"/></svg>
+      Visão Geral
+    </li>
+    <li class="nav-item" onclick="switchNav('config')">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      Configurações
+    </li>
+    <li class="nav-item" onclick="switchNav('redes')">
+      <svg viewBox="0 0 24 24"><path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4zm0 3.5c3.55 0 6.78 1.41 9.15 3.7L12 19.3 2.85 11.2C5.22 8.91 8.45 7.5 12 7.5z"/></svg>
+      Redes
+    </li>
+    <li class="nav-item" onclick="switchNav('ajuda')">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+      Ajuda
+    </li>
+  </ul>
 </div>
 
-<!-- ESPELHAMENTO GLOBAL - Dashboard proporcional -->
-<div id="globalMirror" style="max-width:1200px;margin:14px auto;background:transparent;padding:0;display:none;justify-content:center;overflow:visible">
- <div id="mirrorScreen" style="width:800px;min-width:800px;height:480px;background:#0A0F1D;border:2px solid #1E293B;border-radius:14px;overflow:hidden;transform-origin:top center;position:relative;transform:scale(0.55);box-shadow:0 8px 30px rgba(0,0,0,.5);padding:18px;display:grid;grid-template-columns:360px 380px;gap:20px">
-  <!-- Painel Esquerdo -->
-  <div style="background:#0F172A;border:1px solid #1E293B;border-radius:16px;padding:16px;display:flex;flex-direction:column;align-items:center;position:relative">
-   <div id="mDate" style="font-size:14px;letter-spacing:2px;color:#94A3B8;font-weight:700">TER, 24 OUT</div>
-   <div id="mTime" style="font-size:44px;font-weight:900;color:#FFFFFF;margin:8px 0">14:38</div>
-   <div style="width:280px;height:1px;background:#1E293B;margin:10px 0"></div>
-   <div id="mCity" style="font-size:18px;font-weight:800;color:#E2E8F0;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">LAVRAS, MG</div>
-   <div style="display:flex;align-items:center;gap:14px;width:100%;padding-left:14px">
-    <div style="font-size:36px">⛅</div>
+<!-- MAIN WRAPPER -->
+<div class="main-wrapper">
+  <div class="top-header">
     <div>
-     <div id="mTemp" style="font-size:38px;font-weight:900;color:#FFFFFF">27°C</div>
-     <div id="mDesc" style="font-size:14px;color:#CBD5E1;font-weight:600">Parcialmente Nublado</div>
-     <div id="mHum" style="font-size:12px;color:#94A3B8;margin-top:2px">Humidity: 64%</div>
-     <div id="mWind" style="font-size:12px;color:#94A3B8">Wind: 14 km/h</div>
+      <div class="subtitle">SMART DASHBOARD v2.1</div>
+      <div class="page-title">Configuração</div>
     </div>
-   </div>
-   <div style="margin-top:auto;display:flex;align-items:center;gap:6px;width:100%;padding-left:8px;font-size:11px;color:#94A3B8">
-    <div style="width:8px;height:8px;border-radius:50%;background:#00E676"></div>
-    <span id="mIp">IP: --</span>
-   </div>
+    <div class="user-badge">
+      <div class="user-avatar">✓</div>
+      <span id="ipHeader">ESP32 Conectado</span>
+    </div>
   </div>
-  <!-- Painel Direito -->
-  <div style="display:flex;flex-direction:column;gap:12px">
-   <div style="text-align:center;font-size:18px;font-weight:800;letter-spacing:2px;color:#F6C343;margin-bottom:2px">COTAÇÃO DE MOEDAS</div>
-   <div id="mCurCards" style="display:flex;flex-direction:column;gap:12px"></div>
+
+  <div class="content-grid">
+    <!-- VISÃO GERAL DO STATUS -->
+    <div class="card col-6">
+      <div class="card-header">
+        <div class="card-title">Visão Geral do Status</div>
+      </div>
+      <div class="status-line">Status de conexão atual: <span class="active" id="liveWifi">Conexão Ativa</span></div>
+      <div class="status-line">Uptime de: <b id="liveUptime">-- mins</b></div>
+      <div class="status-line">Firmware versão: <b id="liveVersion">v2.1.0</b></div>
+    </div>
+
+    <!-- CONFIGURAÇÃO DE CIDADE E CLIMA -->
+    <div class="card col-6">
+      <div class="card-header">
+        <div class="card-title">Configuração de Cidade e Clima</div>
+      </div>
+      <div class="row-inputs">
+        <div class="form-group">
+          <label class="form-label">Cidade</label>
+          <input type="text" id="city" class="form-input" placeholder="Ex: Lavras, MG">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Região</label>
+          <select id="uf" class="form-select" onchange="onUfChange(this.value)">
+            <option value="MG">Minas Gerais (MG)</option>
+            <option value="SP">São Paulo (SP)</option>
+            <option value="RJ">Rio de Janeiro (RJ)</option>
+            <option value="PR">Paraná (PR)</option>
+            <option value="SC">Santa Catarina (SC)</option>
+            <option value="RS">Rio Grande do Sul (RS)</option>
+            <option value="DF">Distrito Federal (DF)</option>
+            <option value="BA">Bahia (BA)</option>
+            <option value="GO">Goiás (GO)</option>
+            <option value="PE">Pernambuco (PE)</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="saveLocation()">Salvar Localização</button>
+    </div>
+
+    <!-- CONFIGURAÇÃO DE REDES (WIFI) -->
+    <div class="card col-6">
+      <div class="card-header">
+        <div class="card-title">Configuração de Redes (WiFi)</div>
+        <button class="btn-primary btn-small" onclick="scanWifi()">Buscar</button>
+      </div>
+      <div class="wifi-list" id="wifiList">
+        <div class="wifi-row" onclick="selectWifi('Casa_Net')">
+          <span>Rede Atual: <b>Casa_Net</b></span>
+          <span class="wifi-signal">📶</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">SSID</label>
+        <input type="text" id="ssid" class="form-input" placeholder="Nome da Rede">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Senha</label>
+        <input type="password" id="pass" class="form-input" placeholder="Senha do Wi-Fi">
+      </div>
+      <button class="btn-primary" onclick="saveWifi()">Salvar Configuração</button>
+    </div>
+
+    <!-- CONFIGURAÇÃO DE COTAÇÃO DE MOEDAS -->
+    <div class="card col-6">
+      <div class="card-header">
+        <div class="card-title">Configuração de Cotação de Moedas</div>
+        <button class="btn-primary btn-small" onclick="addCurrencyPrompt()">Adicionar Moeda</button>
+      </div>
+      <table class="currency-table">
+        <thead>
+          <tr>
+            <th>Código 1</th>
+            <th>Código 2</th>
+            <th>Exibir Nome</th>
+            <th>Taxa/Fonte</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="currencyBody">
+          <!-- Linhas das moedas -->
+        </tbody>
+      </table>
+      <div class="form-group" style="margin-top: 10px;">
+        <label class="form-label">API Key / Fonte de Dados</label>
+        <input type="text" class="form-input" value="AwesomeAPI (Dados em Tempo Real)" readonly>
+      </div>
+    </div>
+
+    <!-- AJUSTES DE EXIBIÇÃO -->
+    <div class="card col-12">
+      <div class="card-header">
+        <div class="card-title">Ajustes de Exibição</div>
+      </div>
+      <div class="row-inputs">
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Brilho do Display: <span id="brightVal">180</span></label>
+          <input type="range" min="10" max="255" id="bright" style="width: 100%; margin-top: 8px;" oninput="updateBright(this.value)">
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label">Tema</label>
+          <button class="btn-primary" onclick="toggleTheme()" id="themeBtn">🌙 Modo Escuro</button>
+        </div>
+      </div>
+    </div>
   </div>
- </div>
 </div>
 
-<div class="tabs">
- <div class="tab active" onclick="tab('moedas')">💵 Moedas</div>
- <div class="tab" onclick="tab('clima')">⛅ Clima</div>
- <div class="tab" onclick="tab('wifi')">📶 Wi-Fi</div>
- <div class="tab" onclick="tab('display')">🖥️ Tela</div>
- <div class="tab" onclick="tab('sistema')">⚙️ Sistema</div>
- <div class="tab" onclick="tab('ota')">🚀 OTA / Update</div>
-</div>
-
-<div class="grid">
- <!-- MOEDAS -->
- <div class="card accent" id="tab-moedas">
-  <h2>COTAÇÃO DE MOEDAS</h2>
-  <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Selecione até 6 pares de moedas para exibir na tela:</div>
-  <div id="moedasContainer"></div>
-  <label>Sugestões rápidas:</label>
-  <div class="chips" id="chips"></div>
-  <button class="btn btn-accent" onclick="save()">Salvar Moedas</button>
- </div>
-
- <!-- CLIMA -->
- <div class="card yellow" id="tab-clima" style="display:none">
-  <h2>CONFIGURAÇÃO DO CLIMA</h2>
-  <label>Estado (UF)</label>
-  <select id="uf"></select>
-  <label>Buscar Cidade</label>
-  <div style="position:relative">
-   <input type="text" id="cityInput" placeholder="Digite para filtrar..." autocomplete="off">
-   <div id="citySuggest" class="suggest"></div>
-  </div>
-  <label>Lista de Cidades</label>
-  <select id="citySel" size="5" style="height:120px"></select>
-  <div class="row">
-   <div><label>Cidade no Display</label><input type="text" id="city"></div>
-   <div><label>Fuso Horário (UTC)</label><input type="number" id="tz" value="-3"></div>
-  </div>
-  <div class="row">
-   <div><label>Latitude</label><input type="number" step="0.0001" id="lat"></div>
-   <div><label>Longitude</label><input type="number" step="0.0001" id="lon"></div>
-  </div>
-  <div class="preview" id="pdesc"></div>
-  <button class="btn btn-green" onclick="save()">Salvar Clima</button>
- </div>
-
- <!-- WIFI -->
- <div class="card green" id="tab-wifi" style="display:none">
-  <h2>CONEXÃO WI-FI</h2>
-  <div style="display:flex;justify-content:space-between;align-items:center">
-   <label style="margin:0">Redes Encontradas</label>
-   <button onclick="scanWifi()" class="btn btn-dark" style="width:auto;margin:0;padding:6px 12px;font-size:12px">🔍 Buscar Redes</button>
-  </div>
-  <div id="wifiList" style="max-height:160px;overflow:auto;margin:8px 0"></div>
-  <label>Nome da Rede (SSID)</label>
-  <input type="text" id="ssid">
-  <label>Senha da Rede</label>
-  <input type="password" id="pass" placeholder="Deixe em branco se não mudar">
-  <button class="btn btn-green" onclick="save()">Conectar ao Wi-Fi</button>
- </div>
-
- <!-- TELA / DISPLAY -->
- <div class="card" id="tab-display" style="display:none">
-  <h2>CONTROLE DO DISPLAY</h2>
-  <label>Brilho da Tela (<span id="bv">180</span>/255)</label>
-  <input type="range" min="10" max="255" id="bright" style="width:100%">
-  <div style="background:var(--card2);height:8px;border-radius:4px;overflow:hidden;margin:6px 0">
-   <div id="brightBar" style="height:100%;background:var(--accent);width:70%"></div>
-  </div>
-  <div class="row" style="margin-top:10px">
-   <div><button class="btn btn-dark" onclick="setTheme('dark')">🌙 Modo Noturno</button></div>
-   <div><button class="btn btn-dark" onclick="setTheme('light')">☀️ Modo Claro</button></div>
-  </div>
-  <button class="btn btn-accent" onclick="testBlink()">✨ Piscar Display (Teste)</button>
- </div>
-
- <!-- SISTEMA -->
- <div class="card" id="tab-sistema" style="display:none">
-  <h2>STATUS DO SISTEMA</h2>
-  <div id="live"></div>
-  <div style="margin-top:14px">
-   <label>Intervalo de Atualização das Moedas (segundos)</label>
-   <input type="number" id="dint" value="60">
-   <label>Intervalo de Atualização do Clima (segundos)</label>
-   <input type="number" id="wint" value="600">
-  </div>
-  <div class="row">
-   <div><button class="btn btn-dark" onclick="save()">Salvar Intervalos</button></div>
-   <div><button class="btn btn-dark" style="color:var(--red)" onclick="restart()">🔄 Reiniciar ESP</button></div>
-  </div>
- </div>
-
- <!-- OTA -->
- <div class="card" id="tab-ota" style="display:none">
-  <h2>ATUALIZAÇÃO DE FIRMWARE (OTA)</h2>
-  <div class="kv"><span>Versão Atual</span><b id="otaCur">--</b></div>
-  <div class="kv"><span>Versão no GitHub</span><b id="otaLatest">--</b></div>
-  <div class="kv"><span>Status</span><b id="otaStatus">--</b></div>
-  <div class="kv"><span>Mensagem</span><span id="otaMsg" style="color:var(--muted)">--</span></div>
-  <div style="background:var(--card2);height:10px;border-radius:6px;overflow:hidden;margin:10px 0">
-   <div id="otaBar" style="height:100%;background:var(--green);width:0%;transition:.3s"></div>
-  </div>
-  <div class="row">
-   <div><button class="btn btn-accent" onclick="otaCheck()">🔍 Verificar Atualizações</button></div>
-   <div><button class="btn btn-green" onclick="otaUpdate()">⬇️ Atualizar Agora</button></div>
-  </div>
- </div>
-</div>
-
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast">Configuração salva com sucesso!</div>
 
 <script>
-let state={};
-const POPULARES=['USD-BRL','EUR-BRL','BTC-BRL','ETH-BRL','GBP-BRL','JPY-BRL','CAD-BRL','CHF-BRL','ARS-BRL','USDT-BRL','SOL-BRL'];
-const CAPITAIS=[
- {uf:'SP',c:'São Paulo',lat:-23.5505,lon:-46.6333},
- {uf:'MG',c:'Belo Horizonte',lat:-19.9167,lon:-43.9345},
- {uf:'MG',c:'Lavras',lat:-21.2461,lon:-44.9992},
- {uf:'RJ',c:'Rio de Janeiro',lat:-22.9068,lon:-43.1729},
- {uf:'PR',c:'Curitiba',lat:-25.4284,lon:-49.2733},
- {uf:'RS',c:'Porto Alegre',lat:-30.0346,lon:-51.2177},
- {uf:'DF',c:'Brasília',lat:-15.7975,lon:-47.8919},
- {uf:'BA',c:'Salvador',lat:-12.9714,lon:-38.5014},
- {uf:'SC',c:'Florianópolis',lat:-27.5954,lon:-48.5480},
- {uf:'PE',c:'Recife',lat:-8.0476,lon:-34.8770},
- {uf:'CE',c:'Fortaleza',lat:-3.7172,lon:-38.5433},
- {uf:'GO',c:'Goiânia',lat:-16.6869,lon:-49.2648}
+let state = {};
+let currencies = [
+  { c1: 'USD-BRL', c2: 'USD', name: 'Dólar', rate: 'R$ 4,92', flag: '🇺🇸' },
+  { c1: 'EUR-BRL', c2: 'EUR', name: 'Euro', rate: 'R$ 5,21', flag: '🇪🇺' },
+  { c1: 'BTC-BRL', c2: 'BTC/BRL', name: 'Bitcoin', rate: 'R$ 171.450', flag: '₿' }
 ];
 
-function tab(name){
- ['moedas','clima','wifi','display','sistema','ota'].forEach(t=>{
-  document.getElementById('tab-'+t).style.display = t===name?'block':'none';
- });
- document.querySelectorAll('.tab').forEach((el,i)=>{
-  el.classList.toggle('active', ['moedas','clima','wifi','display','sistema','ota'][i]===name);
- });
+function toast(msg) {
+  let t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
 }
 
-function toast(msg,ok=true){
- let t=document.getElementById('toast');
- t.textContent=msg; t.style.borderColor=ok?'var(--green)':'var(--red)';
- t.style.display='block';
- setTimeout(()=>t.style.display='none',3000);
-}
-function log(m){console.log(m)}
-
-function fillPairs(){
- let c=document.getElementById('moedasContainer');
- let h='';
- for(let i=1;i<=6;i++){
-  h+=`<div class="line">
-   <span style="font-weight:800;font-size:12px;color:var(--accent);width:20px">${i}</span>
-   <div class="switch on" id="sw${i}" onclick="toggleSw(${i})"><div class="knob"></div></div>
-   <span style="font-size:11px;color:var(--muted);width:60px">Ativada</span>
-   <input type="text" id="c${i}" placeholder="Ex: USD-BRL" style="flex:1;text-transform:uppercase" oninput="previewMoeda(${i})">
-   <span class="preview" id="pv${i}" style="width:80px;text-align:right"></span>
-  </div>`;
- }
- c.innerHTML=h;
-
- let ch=document.getElementById('chips');
- ch.innerHTML=POPULARES.map(p=>`<span class="chip" onclick="addChip('${p}')">+ ${p}</span>`).join('');
-}
-
-function toggleSw(i){
- let sw=document.getElementById('sw'+i);
- state['c'+i+'en'] = !state['c'+i+'en'];
- sw.classList.toggle('on', state['c'+i+'en']);
- sw.nextElementSibling.textContent = state['c'+i+'en']?'Ativada':'Desativada';
-}
-function addChip(p){
- for(let i=1;i<=6;i++){
-  let input=document.getElementById('c'+i);
-  if(!input.value.trim()){
-   input.value=p;
-   state['c'+i+'en']=true;
-   let sw=document.getElementById('sw'+i);
-   if(sw){sw.classList.add('on'); sw.nextElementSibling.textContent='Ativada'}
-   previewMoeda(i);
-   toast('Adicionado '+p+' na posição '+i);
-   return;
+function switchNav(tab) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  if (tab === 'ajuda' || tab === 'config') {
+    toast('Navegando para ' + tab);
   }
- }
- toast('Todos os 6 slots preenchidos!',false);
 }
 
-async function previewMoeda(i){
- let v=document.getElementById('c'+i).value.trim().toUpperCase();
- if(!v.includes('-')) return;
- try{
-  let r=await fetch('https://economia.awesomeapi.com.br/json/last/'+v);
-  let j=await r.json();
-  let k=v.replace('-','');
-  if(j[k]){
-   let bid=parseFloat(j[k].bid);
-   document.getElementById('pv'+i).textContent= 'R$ ' + (bid>1000? Math.round(bid):bid.toFixed(2));
+function renderCurrencies() {
+  let tbody = document.getElementById('currencyBody');
+  tbody.innerHTML = currencies.map((c, i) => `
+    <tr>
+      <td><div class="currency-item"><span>${c.flag||'💰'}</span> <b>${c.c1}</b></div></td>
+      <td>${c.c2}</td>
+      <td><input type="text" class="form-input" style="padding:4px 8px;font-size:12px;" value="${c.name}" onchange="currencies[${i}].name=this.value"></td>
+      <td><span style="color:var(--accent-blue);font-weight:700;">${c.rate}</span></td>
+      <td>
+        <button class="btn-action" onclick="editCurrency(${i})">✏️</button>
+        <button class="btn-action" onclick="deleteCurrency(${i})">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function addCurrencyPrompt() {
+  let pair = prompt('Digite o par da moeda (ex: ETH-BRL, GBP-BRL, CAD-BRL):');
+  if (pair && pair.includes('-')) {
+    currencies.push({ c1: pair.toUpperCase(), c2: pair.split('-')[0].toUpperCase(), name: pair.split('-')[0], rate: 'R$ --', flag: '💰' });
+    renderCurrencies();
+    saveCurrencies();
   }
- }catch(e){}
 }
-function previewTodasMoedas(){for(let i=1;i<=6;i++) previewMoeda(i);}
 
-function fillCaps(){
- let sel=document.getElementById('citySel');
- sel.innerHTML=CAPITAIS.map(c=>`<option value="${c.c}" data-lat="${c.lat}" data-lon="${c.lon}">${c.c} (${c.uf})</option>`).join('');
+function editCurrency(i) {
+  let pair = prompt('Editar par de moedas:', currencies[i].c1);
+  if (pair) {
+    currencies[i].c1 = pair.toUpperCase();
+    currencies[i].c2 = pair.split('-')[0].toUpperCase();
+    renderCurrencies();
+    saveCurrencies();
+  }
 }
-function loadUFs(){
- const UFS=['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
- document.getElementById('uf').innerHTML='<option value="">Selecione o Estado</option>'+UFS.map(u=>`<option value="${u}">${u}</option>`).join('');
+
+function deleteCurrency(i) {
+  if (confirm('Remover ' + currencies[i].c1 + '?')) {
+    currencies.splice(i, 1);
+    renderCurrencies();
+    saveCurrencies();
+  }
 }
-async function loadCidades(uf){
- if(!uf) return;
- let r=await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`);
- let list=await r.json();
- let sel=document.getElementById('citySel');
- sel.innerHTML=list.map(m=>`<option value="${m.nome}">${m.nome}</option>`).join('');
-}
-function filtrarCidades(){
- let filter=document.getElementById('cityInput').value.toLowerCase();
- let sel=document.getElementById('citySel');
- for(let opt of sel.options){
-  opt.style.display=opt.text.toLowerCase().includes(filter)?'':'none';
- }
-}
-function usarCidadeSelecionada(){
- let sel=document.getElementById('citySel');
- let opt=sel.options[sel.selectedIndex];
- if(!opt) return;
- document.getElementById('city').value=opt.value;
- if(opt.dataset.lat){
-  document.getElementById('lat').value=opt.dataset.lat;
-  document.getElementById('lon').value=opt.dataset.lon;
-  previewClima();
- } else {
-  // busca coordenadas pelo nominatim
-  fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(opt.value+', Brasil')}`)
-   .then(r=>r.json()).then(j=>{
-    if(j.length){
-     document.getElementById('lat').value=parseFloat(j[0].lat).toFixed(4);
-     document.getElementById('lon').value=parseFloat(j[0].lon).toFixed(4);
-     previewClima();
+
+async function saveCurrencies() {
+  let body = {};
+  for (let i = 1; i <= 6; i++) {
+    if (i <= currencies.length) {
+      body['c' + i] = currencies[i - 1].c1;
+      body['c' + i + 'en'] = true;
+    } else {
+      body['c' + i] = '';
+      body['c' + i + 'en'] = false;
     }
-   });
- }
-}
-async function previewClima(){
- let lat=document.getElementById('lat').value;
- let lon=document.getElementById('lon').value;
- if(!lat||!lon) return;
- try{
-  let r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m`);
-  let j=await r.json();
-  if(j.current){
-   document.getElementById('pdesc').textContent=`Previsão: ${j.current.temperature_2m}°C | Umidade: ${j.current.relative_humidity_2m}% | Vento: ${j.current.wind_speed_10m} km/h`;
   }
- }catch(e){}
+  await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  toast('Moedas atualizadas!');
 }
 
-async function scanWifi(){
- let btn=event.target; let orig=btn.textContent; btn.textContent='🔍 Buscando...'; btn.disabled=true;
- try{
-  let r=await fetch('/api/scan'); let j=await r.json();
-  let html=j.map(n=>`<div class="wifi-item" onclick="selectWifi('${n.ssid}')"><span>${n.encryption=='open'?'🔓':'🔒'}</span><b>${n.ssid||'(oculta)'}</b><span class="rssi">${n.rssi}dBm</span></div>`).join('');
-  document.getElementById('wifiList').innerHTML= html || '<div style="color:var(--muted);font-size:12px">Nenhuma rede encontrada</div>';
- }catch(e){toast('Erro no scan',false)}
- btn.textContent=orig; btn.disabled=false;
-}
-function selectWifi(ssid){document.getElementById('ssid').value=ssid; document.getElementById('pass').focus(); toast('Rede '+ssid+' selecionada');}
-
-async function loadConfig(){
- let r=await fetch('/api/config'); let j=await r.json();
- for(let i=1;i<=6;i++){
-  let c=document.getElementById('c'+i); if(c) c.value=j['c'+i]||'';
-  state['c'+i+'en']=j['c'+i+'en'];
-  let sw=document.getElementById('sw'+i);
-  if(sw){sw.classList.toggle('on',state['c'+i+'en']); sw.nextElementSibling.textContent=state['c'+i+'en']?'Ativada':'Desativada'}
- }
- document.getElementById('city').value=j.city; document.getElementById('lat').value=j.lat; document.getElementById('lon').value=j.lon;
- document.getElementById('bright').value=j.bright; document.getElementById('bv').innerText=j.bright; document.getElementById('brightBar').style.width=(j.bright/255*100)+'%';
- document.getElementById('tz').value=j.tz; document.getElementById('dint').value=j.dint; document.getElementById('wint').value=j.wint;
- document.getElementById('ssid').value=j.ssid;
- document.getElementById('ipBadge').textContent='IP: '+j.ip;
- previewTodasMoedas(); previewClima();
+async function saveLocation() {
+  let city = document.getElementById('city').value;
+  let r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city + ', Brasil')}`);
+  let j = await r.json();
+  let lat = -21.2461, lon = -44.9992;
+  if (j && j.length > 0) {
+    lat = parseFloat(j[0].lat);
+    lon = parseFloat(j[0].lon);
+  }
+  await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ city, lat, lon }) });
+  toast('Localização salva com sucesso!');
 }
 
-function setTheme(m, sendToEsp=true){
- if(m==='light') document.documentElement.setAttribute('data-theme','light');
- else document.documentElement.removeAttribute('data-theme');
- localStorage.setItem('theme',m);
- let b=document.getElementById('themeBtn'); if(b) b.textContent= m==='light'?'☀️ Claro':'🌙 Escuro';
- if(sendToEsp){
-  fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dlight: m==='light'?1:0})})
-   .then(()=>toast(m==='light'?'Modo claro ativado':'Modo noturno ativado'));
- }
-}
-function toggleTheme(){
- let cur=document.documentElement.getAttribute('data-theme');
- setTheme(cur==='light'?'dark':'light', true);
-}
-function toggleMirror(){
- let w=document.getElementById('globalMirror'); let b=document.getElementById('globalMirrorBtn');
- if(w.style.display==='none' || w.style.display===''){w.style.display='flex'; b.textContent='👁️ Esconder'; b.style.opacity='1'}
- else {w.style.display='none'; b.textContent='👁️ Tela'; b.style.opacity='0.7'}
+async function saveWifi() {
+  let ssid = document.getElementById('ssid').value;
+  let pass = document.getElementById('pass').value;
+  await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ssid, pass }) });
+  toast('Wi-Fi salvo! O ESP32 irá conectar.');
 }
 
-function updateMirror(j){
- if(!j) return;
- document.getElementById('mTime').textContent=j.time.slice(0,5);
- document.getElementById('mDate').textContent=j.date;
- document.getElementById('mCity').textContent=j.city;
- document.getElementById('mTemp').textContent=j.weatherTemp;
- document.getElementById('mDesc').textContent=j.weatherDesc;
- document.getElementById('mIp').textContent='IP: '+j.ip;
-
- // 3 cards de moedas
- let curBox=document.getElementById('mCurCards');
- let flags={'USD-BRL':'🇺🇸','EUR-BRL':'🇪🇺','BTC-BRL':'₿','ETH-BRL':'Ξ','GBP-BRL':'🇬🇧','JPY-BRL':'🇯🇵'};
- let names={'USD-BRL':'Dólar','EUR-BRL':'Euro','BTC-BRL':'Bitcoin','ETH-BRL':'Ethereum','GBP-BRL':'Libra','JPY-BRL':'Iene'};
-
- let cardsHtml='';
- let pairs=[document.getElementById('c1')?.value||'USD-BRL',document.getElementById('c2')?.value||'EUR-BRL',document.getElementById('c3')?.value||'BTC-BRL'];
- let prices=[j.dolar||'R$ 4,92','R$ 5,21','R$ 171.450'];
- let pcts=['+0.35% ▲','-0.12% ▼','+2.1%'];
-
- for(let i=0;i<3;i++){
-  let p=pairs[i]||'USD-BRL';
-  let isPos=!pcts[i].includes('-');
-  cardsHtml+=`
-  <div style="background:#111C2E;border:1px solid #1E293B;border-radius:14px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between">
-   <div style="display:flex;align-items:center;gap:12px">
-    <div style="font-size:24px;width:34px;text-align:center">${flags[p]||'💰'}</div>
-    <div>
-     <div style="font-size:16px;font-weight:800;color:#FFFFFF">${p.replace('-','/')}</div>
-     <div style="font-size:12px;color:#94A3B8">${names[p]||'Moeda'}</div>
-    </div>
-   </div>
-   <div style="text-align:right">
-    <div style="font-size:16px;font-weight:800;color:#FFFFFF">${prices[i]}</div>
-    <div style="font-size:12px;font-weight:700;color:${isPos?'#22C55E':'#EF4444'}">${pcts[i]}</div>
-   </div>
-  </div>`;
- }
- curBox.innerHTML=cardsHtml;
+async function scanWifi() {
+  let list = document.getElementById('wifiList');
+  list.innerHTML = '<div style="padding:10px;font-size:12px;color:var(--text-muted);">Buscando redes...</div>';
+  try {
+    let r = await fetch('/api/scan');
+    let j = await r.json();
+    list.innerHTML = j.map(n => `
+      <div class="wifi-row" onclick="selectWifi('${n.ssid}')">
+        <span>${n.ssid || '(Oculta)'}</span>
+        <span class="wifi-signal">📶 ${n.rssi}dBm</span>
+      </div>
+    `).join('');
+  } catch (e) {
+    list.innerHTML = '<div style="padding:10px;font-size:12px;color:var(--text-muted);">Erro ao escanear.</div>';
+  }
 }
 
-async function loadData(){
- try{
-  let r=await fetch('/api/data'); let j=await r.json();
-  document.getElementById('live').innerHTML=`
-   <div class="kv"><span>Hora</span><b>${j.time} ${j.date}</b></div>
-   <div class="kv"><span>Câmbio</span><b>${j.dolar}</b></div>
-   <div class="kv"><span>Clima</span><b>${j.weatherTemp} ${j.weatherDesc} (${j.city})</b></div>
-   <div class="kv"><span>WiFi</span><span class="badge ${j.wifi=='Conectado'?'ok':'off'}">${j.wifi} ${j.ip}</span></div>
-   <div class="kv"><span>Uptime</span><b>${j.uptime}s</b></div>
-   <div class="kv"><span>Heap Livre</span><b>${j.heap} bytes</b></div>`;
-  document.getElementById('ipBadge').textContent='IP: '+j.ip;
-  document.getElementById('wifiBadge').textContent=j.wifi;
-  document.getElementById('wifiBadge').className='badge '+(j.wifi=='Conectado'?'ok':'off');
-  updateMirror(j);
- }catch(e){}
+function selectWifi(ssid) {
+  document.getElementById('ssid').value = ssid;
+  document.getElementById('pass').focus();
+  toast('Rede ' + ssid + ' selecionada');
 }
 
-async function save(){
- let body={};
- for(let i=1;i<=6;i++){
-  let val=document.getElementById('c'+i).value.trim().toUpperCase();
-  body['c'+i]=val;
-  body['c'+i+'en']=state['c'+i+'en'];
-  if(val && !val.includes('-')){toast('Moeda '+i+' deve ter hífen (ex: USD-BRL)',false); return;}
- }
- body.city=document.getElementById('city').value;
- body.lat=parseFloat(document.getElementById('lat').value);
- body.lon=parseFloat(document.getElementById('lon').value);
- body.bright=parseInt(document.getElementById('bright').value);
- body.tz=parseInt(document.getElementById('tz').value);
- body.dint=parseInt(document.getElementById('dint').value);
- body.wint=parseInt(document.getElementById('wint').value);
- body.ssid=document.getElementById('ssid').value;
- body.pass=document.getElementById('pass').value;
-
- let r=await fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
- let j=await r.json();
- toast(j.msg);
- setTimeout(()=>{loadConfig(); loadData();},800);
+function updateBright(v) {
+  document.getElementById('brightVal').textContent = v;
+  fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bright: parseInt(v) }) });
 }
 
-async function restart(){
- if(confirm('Deseja reiniciar o ESP32?')){
-  await fetch('/api/restart',{method:'POST'});
-  toast('Reiniciando ESP32...');
- }
+function toggleTheme() {
+  let cur = document.documentElement.getAttribute('data-theme');
+  let next = cur === 'light' ? 'dark' : 'light';
+  if (next === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  else document.documentElement.removeAttribute('data-theme');
+  document.getElementById('themeBtn').textContent = next === 'light' ? '☀️ Modo Claro' : '🌙 Modo Escuro';
 }
 
-function testBlink(){
- let b=document.getElementById('bright'); let v=parseInt(b.value);
- fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bright:255})});
- setTimeout(()=>fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bright:v})}),800);
+async function loadData() {
+  try {
+    let r = await fetch('/api/data');
+    let j = await r.json();
+    document.getElementById('liveWifi').textContent = j.wifi === 'Conectado' ? 'Conexão Ativa (' + j.ip + ')' : 'Modo AP';
+    document.getElementById('liveUptime').textContent = Math.floor(j.uptime / 60) + ' mins';
+    document.getElementById('ipHeader').textContent = 'IP: ' + j.ip;
+  } catch (e) {}
 }
 
-document.getElementById('uf').addEventListener('change',e=>loadCidades(e.target.value));
-document.getElementById('cityInput').addEventListener('input',filtrarCidades);
-document.getElementById('citySel').addEventListener('dblclick',usarCidadeSelecionada);
-document.getElementById('bright').addEventListener('input',e=>{document.getElementById('bv').innerText=e.target.value; document.getElementById('brightBar').style.width=(e.target.value/255*100)+'%';});
+async function loadConfig() {
+  try {
+    let r = await fetch('/api/config');
+    let j = await r.json();
+    document.getElementById('city').value = j.city || 'Lavras, MG';
+    document.getElementById('ssid').value = j.ssid || '';
+    document.getElementById('bright').value = j.bright || 180;
+    document.getElementById('brightVal').textContent = j.bright || 180;
 
-async function loadOta(){
- try{
-  let r=await fetch('/api/version'); let j=await r.json();
-  document.getElementById('otaCur').textContent=j.current;
-  document.getElementById('otaLatest').textContent=j.latest||'--';
-  let states=['ocioso','verificando','sem update','atualizando','sucesso','falha'];
-  document.getElementById('otaStatus').textContent=states[j.state]||j.state;
-  document.getElementById('otaMsg').textContent=j.error||'';
-  document.getElementById('otaBar').style.width=j.progress+'%';
- }catch(e){}
+    currencies = [];
+    let flags = { 'USD-BRL': '🇺🇸', 'EUR-BRL': '🇪🇺', 'BTC-BRL': '₿', 'ETH-BRL': 'Ξ' };
+    let names = { 'USD-BRL': 'Dólar', 'EUR-BRL': 'Euro', 'BTC-BRL': 'Bitcoin', 'ETH-BRL': 'Ethereum' };
+    for (let i = 1; i <= 6; i++) {
+      if (j['c' + i] && j['c' + i + 'en']) {
+        let pair = j['c' + i];
+        currencies.push({
+          c1: pair,
+          c2: pair.split('-')[0],
+          name: names[pair] || pair.split('-')[0],
+          rate: i === 1 ? (j.dolar || 'R$ --') : 'R$ --',
+          flag: flags[pair] || '💰'
+        });
+      }
+    }
+    if (currencies.length === 0) {
+      currencies = [
+        { c1: 'USD-BRL', c2: 'USD', name: 'Dólar', rate: 'R$ 4,92', flag: '🇺🇸' },
+        { c1: 'EUR-BRL', c2: 'EUR', name: 'Euro', rate: 'R$ 5,21', flag: '🇪🇺' },
+        { c1: 'BTC-BRL', c2: 'BTC/BRL', name: 'Bitcoin', rate: 'R$ 171.450', flag: '₿' }
+      ];
+    }
+    renderCurrencies();
+  } catch (e) {}
 }
-async function otaCheck(){let r=await fetch('/api/ota/check',{method:'POST'}); let j=await r.json(); toast(j.msg||j.error, j.state!==5); loadOta();}
-async function otaUpdate(){if(!confirm('Atualizar para '+document.getElementById('otaLatest').textContent+'? Não desligue!')) return; toast('Baixando e gravando...'); let r=await fetch('/api/ota/update',{method:'POST'}); let j=await r.json(); toast(j.msg, j.ok); loadOta();}
 
-fillPairs(); fillCaps(); loadUFs(); loadConfig(); loadData(); loadOta();
-setInterval(loadData,5000);
-setInterval(loadOta,10000);
+renderCurrencies();
+loadConfig();
+loadData();
+setInterval(loadData, 5000);
 </script>
 </body>
 </html>
@@ -544,7 +654,7 @@ setInterval(loadOta,10000);
 
 void handleRoot() {
   Serial.printf("[Web] GET %s (page %d bytes)\n", webServer.uri().c_str(), (int)strlen_P(HTML_PAGE));
-  webServer.send_P(200, "text/html", HTML_PAGE);
+  webServer.send_P(200, "text/html; charset=UTF-8", HTML_PAGE);
 }
 
 void handleGetConfig() {
@@ -575,7 +685,7 @@ void handleGetConfig() {
 
   String out;
   serializeJson(doc, out);
-  webServer.send(200, "application/json", out);
+  webServer.send(200, "application/json; charset=UTF-8", out);
 }
 
 void handlePostConfig() {
@@ -583,13 +693,13 @@ void handlePostConfig() {
                 webServer.args(), webServer.hasArg("plain")?1:0,
                 (int)webServer.arg("plain").length(), webServer.uri().c_str());
   if (!webServer.hasArg("plain")) {
-    webServer.send(400, "application/json", "{\"msg\":\"sem body\"}");
+    webServer.send(400, "application/json; charset=UTF-8", "{\"msg\":\"sem body\"}");
     return;
   }
   JsonDocument doc;
   DeserializationError err = deserializeJson(doc, webServer.arg("plain"));
   if (err) {
-    webServer.send(400, "application/json", "{\"msg\":\"JSON invalido\"}");
+    webServer.send(400, "application/json; charset=UTF-8", "{\"msg\":\"JSON invalido\"}");
     return;
   }
 
@@ -641,11 +751,11 @@ void handlePostConfig() {
   gNeedsRebuild = true;
 
   if (wifiChanged) {
-    webServer.send(200, "application/json", "{\"msg\":\"WiFi alterado, reconectando...\"}");
+    webServer.send(200, "application/json; charset=UTF-8", "{\"msg\":\"WiFi alterado, reconectando...\"}");
     delay(500);
     WiFi.begin(gConfig.wifi_ssid, gConfig.wifi_pass);
   } else {
-    webServer.send(200, "application/json", "{\"msg\":\"Salvo com sucesso! Painel atualizado\"}");
+    webServer.send(200, "application/json; charset=UTF-8", "{\"msg\":\"Salvo com sucesso! Painel atualizado\"}");
   }
 }
 
@@ -674,7 +784,7 @@ void handleGetData() {
 
   String out;
   serializeJson(doc, out);
-  webServer.send(200, "application/json", out);
+  webServer.send(200, "application/json; charset=UTF-8", out);
 }
 
 void handleScan() {
@@ -690,7 +800,7 @@ void handleScan() {
   }
   String out;
   serializeJson(arr, out);
-  webServer.send(200, "application/json", out);
+  webServer.send(200, "application/json; charset=UTF-8", out);
   WiFi.scanDelete();
 }
 
@@ -705,7 +815,7 @@ void handleVersion() {
   doc["dlight"] = gConfig.display_light;
   String out;
   serializeJson(doc, out);
-  webServer.send(200, "application/json", out);
+  webServer.send(200, "application/json; charset=UTF-8", out);
 }
 
 void handleOtaCheck() {
@@ -718,17 +828,17 @@ void handleOtaCheck() {
   doc["state"] = (int)gOta.state;
   String out;
   serializeJson(doc, out);
-  webServer.send(200, "application/json", out);
+  webServer.send(200, "application/json; charset=UTF-8", out);
 }
 
 void handleOtaUpdate() {
   otaRequestUpdate();
-  webServer.send(200, "application/json", "{\"msg\":\"iniciando OTA em background, aguarde...\",\"ok\":true}");
+  webServer.send(200, "application/json; charset=UTF-8", "{\"msg\":\"iniciando OTA em background, aguarde...\",\"ok\":true}");
 }
 
 void handleRestart() {
   Serial.println("[Web] POST /api/restart -> reiniciando");
-  webServer.send(200, "application/json", "{\"msg\":\"reiniciando...\"}");
+  webServer.send(200, "application/json; charset=UTF-8", "{\"msg\":\"reiniciando...\"}");
   delay(500);
   ESP.restart();
 }
@@ -736,10 +846,10 @@ void handleRestart() {
 void handleNotFound() {
   if (isApMode()) {
     webServer.sendHeader("Location", String("http://") + WiFi.softAPIP().toString() + "/", true);
-    webServer.send(302, "text/plain", "");
+    webServer.send(302, "text/plain; charset=UTF-8", "");
     Serial.printf("[Web] captive redirect para %s -> /\n", webServer.hostHeader().c_str());
   } else {
-    webServer.send(404, "text/plain", "Nao encontrado");
+    webServer.send(404, "text/plain; charset=UTF-8", "Não encontrado");
   }
 }
 
