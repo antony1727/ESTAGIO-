@@ -51,6 +51,24 @@ String weatherWind = "Wind: -- km/h";
 int currentWeatherCode = 0;
 volatile bool gNeedsRebuild = false;
 
+// Remove acentos e caracteres UTF-8 especiais para exibição 100% perfeita nas fontes ASCII do LVGL
+String sanitize_for_lvgl(String str) {
+  String s = str;
+  s.replace("á", "a"); s.replace("à", "a"); s.replace("ã", "a"); s.replace("â", "a"); s.replace("ä", "a");
+  s.replace("Á", "A"); s.replace("À", "A"); s.replace("Ã", "A"); s.replace("Â", "A"); s.replace("Ä", "A");
+  s.replace("é", "e"); s.replace("ê", "e"); s.replace("è", "e"); s.replace("ë", "e");
+  s.replace("É", "E"); s.replace("Ê", "E"); s.replace("È", "E"); s.replace("Ë", "E");
+  s.replace("í", "i"); s.replace("ì", "i"); s.replace("î", "i"); s.replace("ï", "i");
+  s.replace("Í", "I"); s.replace("Ì", "I"); s.replace("Î", "I"); s.replace("Ï", "I");
+  s.replace("ó", "o"); s.replace("õ", "o"); s.replace("ô", "o"); s.replace("ò", "o"); s.replace("ö", "o");
+  s.replace("Ó", "O"); s.replace("Õ", "O"); s.replace("Ô", "O"); s.replace("Ò", "O"); s.replace("Ö", "O");
+  s.replace("ú", "u"); s.replace("ù", "u"); s.replace("û", "u"); s.replace("ü", "u");
+  s.replace("Ú", "U"); s.replace("Ù", "U"); s.replace("Û", "U"); s.replace("Ü", "U");
+  s.replace("ç", "c"); s.replace("Ç", "C");
+  s.replace("º", "");  s.replace("ª", "");
+  return s;
+}
+
 void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
   uint32_t w = (area->x2 - area->x1 + 1);
   uint32_t h = (area->y2 - area->y1 + 1);
@@ -70,20 +88,20 @@ void my_touch_read(lv_indev_drv_t *indev, lv_indev_data_t *data) {
   }
 }
 
-// Helpers para obter nomes amigáveis das moedas em Português
+// Helpers para obter nomes amigáveis das moedas (ASCII seguro para LVGL)
 const char* get_currency_friendly_name(const char* pair) {
-  if (strstr(pair, "USD")) return "Dólar";
+  if (strstr(pair, "USD")) return "Dolar";
   if (strstr(pair, "EUR")) return "Euro";
   if (strstr(pair, "BTC")) return "Bitcoin";
   if (strstr(pair, "ETH")) return "Ethereum";
   if (strstr(pair, "GBP")) return "Libra";
   if (strstr(pair, "JPY")) return "Iene";
-  if (strstr(pair, "CAD")) return "Dólar Can.";
-  if (strstr(pair, "CHF")) return "Franco Suíço";
+  if (strstr(pair, "CAD")) return "Dolar Can.";
+  if (strstr(pair, "CHF")) return "Franco Suico";
   if (strstr(pair, "ARS")) return "Peso Arg.";
   if (strstr(pair, "USDT")) return "Tether";
   if (strstr(pair, "SOL")) return "Solana";
-  return "Câmbio";
+  return "Cambio";
 }
 
 // Renderizador dos ícones de Moedas / Bandeiras
@@ -355,7 +373,7 @@ void create_ui() {
 
   // 4. Nome da Cidade (ex: "LAVRAS, MG")
   weather_city_label = lv_label_create(left_panel);
-  String cUpper = weatherCity;
+  String cUpper = sanitize_for_lvgl(weatherCity);
   cUpper.toUpperCase();
   lv_label_set_text(weather_city_label, cUpper.c_str());
   lv_obj_set_style_text_font(weather_city_label, &lv_font_montserrat_20, 0);
@@ -363,7 +381,7 @@ void create_ui() {
   lv_obj_set_style_text_letter_space(weather_city_label, 1, 0);
   lv_obj_align(weather_city_label, LV_ALIGN_TOP_MID, 0, 150);
 
-  // 5. Linha do Ícone de Clima e Temperatura Grande ("27°C")
+  // 5. Linha do Ícone de Clima e Temperatura Grande ("27 C")
   weather_icon_box = lv_obj_create(left_panel);
   lv_obj_set_size(weather_icon_box, 70, 58);
   lv_obj_set_pos(weather_icon_box, 36, 195);
@@ -374,14 +392,14 @@ void create_ui() {
   render_weather_icon(weather_icon_box, currentWeatherCode);
 
   weather_temp_label = lv_label_create(left_panel);
-  lv_label_set_text(weather_temp_label, "--°C");
+  lv_label_set_text(weather_temp_label, "-- C");
   lv_obj_set_style_text_font(weather_temp_label, &lv_font_montserrat_48, 0);
   lv_obj_set_style_text_color(weather_temp_label, colWhite, 0);
   lv_obj_set_pos(weather_temp_label, 125, 195);
 
   // 6. Condição Climática (ex: "Parcialmente Nublado")
   weather_desc_label = lv_label_create(left_panel);
-  lv_label_set_text(weather_desc_label, weatherDesc.c_str());
+  lv_label_set_text(weather_desc_label, sanitize_for_lvgl(weatherDesc).c_str());
   lv_obj_set_style_text_font(weather_desc_label, &lv_font_montserrat_16, 0);
   lv_obj_set_style_text_color(weather_desc_label, colDesc, 0);
   lv_obj_set_pos(weather_desc_label, 125, 268);
@@ -431,7 +449,7 @@ void create_ui() {
   // PAINEL DIREITO: COTAÇÃO DE MOEDAS (385 x 444)
   // ==========================================
   lv_obj_t *moeda_title = lv_label_create(scr);
-  lv_label_set_text(moeda_title, "COTAÇÃO DE MOEDAS");
+  lv_label_set_text(moeda_title, "COTACAO DE MOEDAS");
   lv_obj_set_style_text_font(moeda_title, &lv_font_montserrat_20, 0);
   lv_obj_set_style_text_color(moeda_title, colHeaderGold, 0);
   lv_obj_set_style_text_letter_space(moeda_title, 2, 0);
@@ -684,10 +702,10 @@ void update_weather(lv_timer_t *timer) {
       else if (wcode >= 61 && wcode <= 67) desc = "Chuva";
       else if (wcode >= 71 && wcode <= 77) desc = "Neve";
       else if (wcode >= 80 && wcode <= 82) desc = "Pancadas de Chuva";
-      else if (wcode >= 95) desc = "Tempestade com Raios";
+      else if (wcode >= 95) desc = "Tempestade Raios";
 
       char bufTemp[16];
-      snprintf(bufTemp, sizeof(bufTemp), "%.0f°C", temp);
+      snprintf(bufTemp, sizeof(bufTemp), "%.0f C", temp);
       weatherTemp = bufTemp;
       weatherDesc = desc;
       weatherCity = String(gConfig.city);
@@ -701,11 +719,11 @@ void update_weather(lv_timer_t *timer) {
       weatherWind = bufWind;
 
       if (weather_temp_label) lv_label_set_text(weather_temp_label, weatherTemp.c_str());
-      if (weather_desc_label) lv_label_set_text(weather_desc_label, weatherDesc.c_str());
+      if (weather_desc_label) lv_label_set_text(weather_desc_label, sanitize_for_lvgl(weatherDesc).c_str());
       if (weather_humidity_label) lv_label_set_text(weather_humidity_label, weatherHumidity.c_str());
       if (weather_wind_label) lv_label_set_text(weather_wind_label, weatherWind.c_str());
       if (weather_city_label) {
-        String cUpper = weatherCity;
+        String cUpper = sanitize_for_lvgl(weatherCity);
         cUpper.toUpperCase();
         lv_label_set_text(weather_city_label, cUpper.c_str());
       }
