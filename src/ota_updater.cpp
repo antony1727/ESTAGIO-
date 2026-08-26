@@ -1,6 +1,7 @@
 #include "ota_updater.h"
 #include "version.h"
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <Update.h>
 #include <ArduinoJson.h>
@@ -64,12 +65,14 @@ void otaRequestUpdate(){
 // Fallback sem API: segue o redirect de /releases/latest e extrai a tag
 // Nao sofre rate limit de 60 req/h da api.github.com
 static bool checkViaRedirect(String &tagOut){
+  WiFiClientSecure client;
+  client.setInsecure(); // Necessario para conexao HTTPS no GitHub
   HTTPClient http;
-  http.setTimeout(10000);
+  http.setTimeout(15000);
   http.addHeader("User-Agent", "ESP32-OTA");
   http.setFollowRedirects(HTTPC_DISABLE_FOLLOW_REDIRECTS);
   String url = String("https://github.com/") + GITHUB_REPO + "/releases/latest";
-  http.begin(url);
+  http.begin(client, url);
   int code = http.GET();
   if(code == 301 || code == 302 || code == 303 || code == 307 || code == 308){
     String loc = http.getLocation();
@@ -120,17 +123,19 @@ bool otaCheck(bool showLog){
   gOta.state = OTA_CHECKING;
   gOta.error = "";
   gOta.downloadUrl = "";
-  if(showLog) Serial.println("[OTA] verificando release mais recente...");
+  if(showLog) Serial.println("[OTA] verificando release mais recente no GitHub...");
 
   String tag = "";
   bool gotTag = false;
 
-  // 1) Tentativa via API oficial
+  // 1) Tentativa via API oficial com WiFiClientSecure
+  WiFiClientSecure client;
+  client.setInsecure();
   HTTPClient http;
-  http.setTimeout(10000);
+  http.setTimeout(15000);
   http.addHeader("User-Agent", "ESP32-OTA");
   http.addHeader("Accept", "application/vnd.github+json");
-  http.begin(GITHUB_API_LATEST);
+  http.begin(client, GITHUB_API_LATEST);
   int code = http.GET();
   if(code == 200){
     String payload = http.getString();
@@ -157,7 +162,6 @@ bool otaCheck(bool showLog){
       }
     }
   } else {
-    // loga o corpo para diagnosticar (rate limit, blocked, etc)
     String body = http.getString();
     http.end();
     body.replace("\n", " ");
@@ -196,8 +200,8 @@ bool otaCheck(bool showLog){
 
   if(latestCode > curCode && gOta.downloadUrl.length()>0){
     gOta.error = "Atualizacao disponivel: " + tag;
-    if(showLog) Serial.println("[OTA] " + gOta.error + " -> iniciando auto-update em background!");
-    otaRequestUpdate(); // Dispara o download e gravacao automaticamente!
+    if(showLog) Serial.println("[OTA] " + gOta.error + " -> disparando atualizacao automatica!");
+    otaRequestUpdate(); // Dispara imediatamente o download e gravacao em background
     return true;
   } else {
     gOta.state = OTA_NO_UPDATE;
@@ -227,11 +231,14 @@ bool otaUpdateUrl(String url){
   gOta.state = OTA_UPDATING;
   gOta.progress = 0;
   Serial.println("[OTA] iniciando download " + url);
+
+  WiFiClientSecure client;
+  client.setInsecure(); // Permite SSL/TLS sem rejeitar certificado do GitHub / AWS S3
   HTTPClient http;
-  http.setTimeout(20000);
+  http.setTimeout(30000);
   http.addHeader("User-Agent", "ESP32-OTA");
-  http.begin(url);
   http.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
+  http.begin(client, url);
   int code = http.GET();
 
   // fallback de nome de arquivo: firmware-latest.bin
@@ -240,7 +247,7 @@ bool otaUpdateUrl(String url){
     String alt = String("https://github.com/") + GITHUB_REPO +
                  "/releases/download/v" + gOta.latest + "/firmware-latest.bin";
     Serial.println("[OTA] 404, tentando " + alt);
-    http.begin(alt);
+    http.begin(client, alt);
     http.addHeader("User-Agent", "ESP32-OTA");
     http.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
     code = http.GET();
@@ -254,7 +261,7 @@ bool otaUpdateUrl(String url){
     return false;
   }
   int len = http.getSize();
-  Serial.printf("[OTA] tamanho %d\n", len);
+  Serial.printf("[OTA] tamanho %d bytes\n", len);
   if(!Update.begin(len > 0 ? len : UPDATE_SIZE_UNKNOWN)){
     gOta.error = Update.errorString();
     gOta.state = OTA_FAILED;
@@ -313,5 +320,4 @@ bool otaUpdateUrl(String url){
 }
 
 void otaLoop(){
-  // loop mantido para operacoes periodicas se necessario
 }

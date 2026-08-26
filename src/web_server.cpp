@@ -2,6 +2,7 @@
 #include "app_config.h"
 #include <WiFi.h>
 #include <ESPmDNS.h>
+#include <Update.h>
 #include <ArduinoJson.h>
 #include "LGFX_ESP32_8048S070.h"
 #include "ota_updater.h"
@@ -293,6 +294,22 @@ body {
 }
 .btn-action:hover { opacity: 1; }
 
+.progress-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-input);
+  border-radius: 4px;
+  overflow: hidden;
+  display: none;
+  margin-top: 6px;
+}
+.progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #38BDF8, #22C55E);
+  transition: width 0.3s;
+}
+
 .toast {
   position: fixed;
   bottom: 24px;
@@ -359,7 +376,13 @@ body {
       </div>
       <div class="status-line">Status de conexão atual: <span class="active" id="liveWifi">Conexão Ativa</span></div>
       <div class="status-line">Uptime de: <b id="liveUptime">-- mins</b></div>
-      <div class="status-line">Firmware versão: <b id="liveVersion">v2.1.0</b></div>
+      <div class="status-line">Firmware versão: <b id="liveVersion">v2.1.2</b></div>
+
+      <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+        <button class="btn-primary" onclick="triggerOta()" id="btnOta">🚀 Atualizar Firmware (GitHub OTA)</button>
+        <div class="progress-bar-bg" id="otaProgBg"><div class="progress-bar-fill" id="otaProgFill"></div></div>
+        <div style="font-size:11px; color:var(--text-muted);" id="otaMsg"></div>
+      </div>
     </div>
 
     <!-- CONFIGURAÇÃO DE CIDADE E CLIMA -->
@@ -374,7 +397,7 @@ body {
         </div>
         <div class="form-group">
           <label class="form-label">Região</label>
-          <select id="uf" class="form-select" onchange="onUfChange(this.value)">
+          <select id="uf" class="form-select">
             <option value="MG">Minas Gerais (MG)</option>
             <option value="SP">São Paulo (SP)</option>
             <option value="RJ">Rio de Janeiro (RJ)</option>
@@ -431,7 +454,6 @@ body {
           </tr>
         </thead>
         <tbody id="currencyBody">
-          <!-- Linhas das moedas -->
         </tbody>
       </table>
       <div class="form-group" style="margin-top: 10px;">
@@ -440,10 +462,10 @@ body {
       </div>
     </div>
 
-    <!-- AJUSTES DE EXIBIÇÃO -->
+    <!-- AJUSTES DE EXIBIÇÃO & UPLOAD MANUAL -->
     <div class="card col-12">
       <div class="card-header">
-        <div class="card-title">Ajustes de Exibição</div>
+        <div class="card-title">Ajustes de Exibição & Upload Local</div>
       </div>
       <div class="row-inputs">
         <div class="form-group" style="flex: 2;">
@@ -453,6 +475,13 @@ body {
         <div class="form-group" style="flex: 1;">
           <label class="form-label">Tema</label>
           <button class="btn-primary" onclick="toggleTheme()" id="themeBtn">🌙 Modo Escuro</button>
+        </div>
+        <div class="form-group" style="flex: 2;">
+          <label class="form-label">Upload Direto de firmware.bin (Sem Internet)</label>
+          <div style="display:flex;gap:6px;margin-top:4px;">
+            <input type="file" id="binFile" accept=".bin" class="form-input" style="padding:4px;">
+            <button class="btn-primary btn-small" onclick="uploadLocalBin()">Enviar</button>
+          </div>
         </div>
       </div>
     </div>
@@ -596,6 +625,65 @@ function toggleTheme() {
   if (next === 'light') document.documentElement.setAttribute('data-theme', 'light');
   else document.documentElement.removeAttribute('data-theme');
   document.getElementById('themeBtn').textContent = next === 'light' ? '☀️ Modo Claro' : '🌙 Modo Escuro';
+}
+
+async function triggerOta() {
+  let btn = document.getElementById('btnOta');
+  let msg = document.getElementById('otaMsg');
+  let pBg = document.getElementById('otaProgBg');
+  let pFill = document.getElementById('otaProgFill');
+  btn.disabled = true;
+  btn.textContent = 'Verificando GitHub...';
+  msg.textContent = 'Consultando últimas releases...';
+  pBg.style.display = 'block';
+
+  try {
+    let r = await fetch('/api/ota/check', { method: 'POST' });
+    let j = await r.json();
+    if (j.hasUpdate) {
+      msg.textContent = 'Baixando e gravando versão ' + j.latest + '...';
+      await fetch('/api/ota/update', { method: 'POST' });
+      let iv = setInterval(async () => {
+        let vr = await fetch('/api/version');
+        let vj = await vr.json();
+        pFill.style.width = (vj.progress || 0) + '%';
+        msg.textContent = `Progresso: ${vj.progress}% - ${vj.error || 'Gravando flash'}`;
+        if (vj.state === 3 || vj.progress === 100) {
+          clearInterval(iv);
+          msg.textContent = 'Atualizado com sucesso! Reiniciando em instantes...';
+          setTimeout(() => location.reload(), 6000);
+        }
+      }, 1000);
+    } else {
+      msg.textContent = j.msg || 'O ESP32 já está na versão mais recente!';
+      btn.disabled = false;
+      btn.textContent = '🚀 Atualizar Firmware (GitHub OTA)';
+    }
+  } catch (e) {
+    msg.textContent = 'Erro ao consultar OTA.';
+    btn.disabled = false;
+    btn.textContent = '🚀 Atualizar Firmware (GitHub OTA)';
+  }
+}
+
+async function uploadLocalBin() {
+  let fileInput = document.getElementById('binFile');
+  if (!fileInput.files.length) {
+    toast('Selecione um arquivo .bin primeiro!');
+    return;
+  }
+  let file = fileInput.files[0];
+  let formData = new FormData();
+  formData.append('firmware', file);
+  toast('Enviando firmware localmente...');
+  try {
+    let r = await fetch('/api/ota/upload', { method: 'POST', body: formData });
+    let j = await r.json();
+    toast(j.msg || 'Upload concluído! Reiniciando...');
+    setTimeout(() => location.reload(), 5000);
+  } catch (e) {
+    toast('Erro no upload local.');
+  }
 }
 
 async function loadData() {
@@ -867,6 +955,31 @@ void webServerInit() {
   webServer.on("/api/ota/check", HTTP_POST, handleOtaCheck);
   webServer.on("/api/ota/update", HTTP_POST, handleOtaUpdate);
   webServer.on("/api/restart", HTTP_POST, handleRestart);
+
+  // Upload direto de firmware .bin via navegador
+  webServer.on("/api/ota/upload", HTTP_POST, [](){
+    webServer.send(200, "application/json; charset=UTF-8", "{\"msg\":\"Upload concluido! Reiniciando...\"}");
+    delay(800);
+    ESP.restart();
+  }, [](){
+    HTTPUpload& upload = webServer.upload();
+    if (upload.status == UPLOAD_FILE_START) {
+      Serial.printf("[OTA-Web] Iniciando upload: %s\n", upload.filename.c_str());
+      if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+        Update.printError(Serial);
+      }
+    } else if (upload.status == UPLOAD_FILE_WRITE) {
+      if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+        Update.printError(Serial);
+      }
+    } else if (upload.status == UPLOAD_FILE_END) {
+      if (Update.end(true)) {
+        Serial.printf("[OTA-Web] Sucesso: %u bytes gravados\n", upload.totalSize);
+      } else {
+        Update.printError(Serial);
+      }
+    }
+  });
 
   // Captive portal handlers
   webServer.on("/generate_204", HTTP_GET, handleRoot);
