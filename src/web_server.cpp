@@ -112,6 +112,7 @@ body {
   font-weight: 600;
   font-size: 14px;
   transition: all 0.2s;
+  user-select: none;
 }
 .nav-item:hover { background-color: rgba(255,255,255,0.05); color: var(--text-main); }
 .nav-item.active {
@@ -133,6 +134,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
 }
 .top-header .subtitle { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; }
 .top-header .page-title { font-size: 24px; font-weight: 800; margin-top: 2px; }
@@ -141,7 +144,7 @@ body {
   align-items: center;
   gap: 10px;
   background: var(--bg-card);
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 999px;
   border: 1px solid var(--border);
   font-size: 12px;
@@ -159,9 +162,12 @@ body {
   font-size: 12px;
 }
 
-/* CONTENT GRID */
-.content-grid {
+/* TABS SYSTEM */
+.tab-pane {
+  display: none;
   padding: 0 32px 40px;
+}
+.tab-pane.active {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: 20px;
@@ -247,10 +253,10 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 150px;
+  max-height: 180px;
   overflow-y: auto;
   border: 1px solid var(--border);
-  padding: 6px;
+  padding: 8px;
   border-radius: 8px;
   background: var(--bg-input);
 }
@@ -258,7 +264,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: 6px;
   background-color: var(--bg-card);
   font-size: 13px;
@@ -294,7 +300,7 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 16px;
   opacity: 0.7;
 }
 .btn-action:hover { opacity: 1; }
@@ -341,19 +347,19 @@ body {
     <div class="brand-title">SMART<span>DASHBOARD</span></div>
   </div>
   <ul class="nav-list">
-    <li class="nav-item active" onclick="switchNav('visao')">
+    <li class="nav-item active" id="nav-visao" onclick="switchNav('visao')">
       <svg viewBox="0 0 24 24"><path d="M4 13h6c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v8c0 .55.45 1 1 1zm0 8h6c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1zm10 0h6c.55 0 1-.45 1-1v-8c0-.55-.45-1-1-1h-6c-.55 0-1 .45-1 1v8c0 .55.45 1 1 1zm0-18v4c0 .55.45 1 1 1h6c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1h-6c-.55 0-1 .45-1 1z"/></svg>
       Visão Geral
     </li>
-    <li class="nav-item" onclick="switchNav('config')">
+    <li class="nav-item" id="nav-config" onclick="switchNav('config')">
       <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
       Configurações
     </li>
-    <li class="nav-item" onclick="switchNav('redes')">
+    <li class="nav-item" id="nav-redes" onclick="switchNav('redes')">
       <svg viewBox="0 0 24 24"><path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4zm0 3.5c3.55 0 6.78 1.41 9.15 3.7L12 19.3 2.85 11.2C5.22 8.91 8.45 7.5 12 7.5z"/></svg>
       Redes
     </li>
-    <li class="nav-item" onclick="switchNav('ajuda')">
+    <li class="nav-item" id="nav-ajuda" onclick="switchNav('ajuda')">
       <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
       Ajuda
     </li>
@@ -365,7 +371,7 @@ body {
   <div class="top-header">
     <div>
       <div class="subtitle">SMART DASHBOARD v2.1</div>
-      <div class="page-title">Painel de Controle</div>
+      <div class="page-title" id="pageTitle">Visão Geral</div>
     </div>
     <div class="user-badge">
       <div class="user-avatar">✓</div>
@@ -373,27 +379,43 @@ body {
     </div>
   </div>
 
-  <div class="content-grid">
-    <!-- VISÃO GERAL DO STATUS -->
+  <!-- ABA 1: VISÃO GERAL -->
+  <div class="tab-pane active" id="tab-visao">
     <div class="card col-6">
       <div class="card-header">
-        <div class="card-title">Visão Geral do Status</div>
+        <div class="card-title">Status do Sistema ESP32</div>
       </div>
       <div class="status-line">Status Wi-Fi: <span class="active" id="liveWifi">Conexão Ativa</span></div>
       <div class="status-line">Uptime: <b id="liveUptime">-- mins</b></div>
-      <div class="status-line">Versão Firmware: <b id="liveVersion">v2.1.3</b></div>
+      <div class="status-line">Memória Livre: <b id="liveHeap">-- KB</b></div>
+      <div class="status-line">Versão Firmware: <b id="liveVersion">v2.1.5</b></div>
+    </div>
 
-      <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+    <div class="card col-6">
+      <div class="card-header">
+        <div class="card-title">Atualização de Firmware</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
         <button class="btn-primary" onclick="triggerOta()" id="btnOta">🚀 Atualizar Firmware (GitHub OTA)</button>
         <div class="progress-bar-bg" id="otaProgBg"><div class="progress-bar-fill" id="otaProgFill"></div></div>
         <div style="font-size:11px; color:var(--text-muted);" id="otaMsg"></div>
       </div>
+      <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;">
+        <label class="form-label" style="margin-bottom:6px;display:block;">Upload Direto de Arquivo .bin</label>
+        <div style="display:flex;gap:8px;">
+          <input type="file" id="binFile" accept=".bin" class="form-input" style="padding:6px;">
+          <button class="btn-primary btn-small" onclick="uploadLocalBin()">Enviar</button>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <!-- CONFIGURAÇÃO DE CIDADE E CLIMA -->
+  <!-- ABA 2: CONFIGURAÇÕES -->
+  <div class="tab-pane" id="tab-config">
+    <!-- CIDADE E CLIMA -->
     <div class="card col-6">
       <div class="card-header">
-        <div class="card-title">Configuração de Cidade e Clima</div>
+        <div class="card-title">Cidade e Clima</div>
       </div>
       <div class="row-inputs">
         <div class="form-group" style="flex: 1;">
@@ -434,36 +456,31 @@ body {
           <datalist id="cityDatalist"></datalist>
         </div>
       </div>
-      <button class="btn-primary" onclick="saveLocation()">Salvar Localização no Painel</button>
+      <button class="btn-primary" onclick="saveLocation()">Salvar Cidade no Painel</button>
     </div>
 
-    <!-- CONFIGURAÇÃO DE REDES (WIFI) -->
+    <!-- AJUSTES DE TELA -->
     <div class="card col-6">
       <div class="card-header">
-        <div class="card-title">Configuração de Redes (WiFi)</div>
-        <button class="btn-primary btn-small" onclick="scanWifi()" id="btnScan">🔍 Buscar Redes</button>
-      </div>
-      <div class="wifi-list" id="wifiList">
-        <div style="padding:10px;font-size:12px;color:var(--text-muted);text-align:center;">Clique em 'Buscar Redes' para listar</div>
+        <div class="card-title">Ajustes do Display ESP32</div>
       </div>
       <div class="form-group">
-        <label class="form-label">Nome da Rede (SSID)</label>
-        <input type="text" id="ssid" class="form-input" placeholder="Ex: Casa_WiFi">
+        <label class="form-label">Brilho da Tela: <span id="brightVal" style="font-weight:700;color:var(--accent-blue);">180</span></label>
+        <input type="range" min="10" max="255" id="bright" value="180" style="width: 100%; margin-top: 8px;" oninput="updateBright(this.value)">
       </div>
-      <div class="form-group">
-        <label class="form-label">Senha do Wi-Fi</label>
-        <input type="password" id="pass" class="form-input" placeholder="Senha da rede">
+      <div class="form-group" style="margin-top:8px;">
+        <label class="form-label">Tema da Tela do ESP32 & Web</label>
+        <button class="btn-primary" onclick="toggleTheme()" id="themeBtn" style="margin-top:4px;">🌙 Modo Escuro</button>
       </div>
-      <button class="btn-primary" onclick="saveWifi()">Conectar e Salvar Wi-Fi</button>
     </div>
 
-    <!-- CONFIGURAÇÃO DE COTAÇÃO DE MOEDAS -->
-    <div class="card col-6">
+    <!-- COTAÇÃO DE MOEDAS -->
+    <div class="card col-12">
       <div class="card-header">
-        <div class="card-title">Configuração de Cotação de Moedas</div>
+        <div class="card-title">Cotação de Moedas</div>
       </div>
-      <div style="display:flex;gap:8px;">
-        <select id="currencyPreset" class="form-select" style="flex: 2;">
+      <div style="display:flex;gap:12px;margin-bottom:8px;">
+        <select id="currencyPreset" class="form-select" style="flex: 3;">
           <option value="USD-BRL|Dólar|🇺🇸">🇺🇸 USD-BRL (Dólar Comercial)</option>
           <option value="EUR-BRL|Euro|🇪🇺">🇪🇺 EUR-BRL (Euro)</option>
           <option value="BTC-BRL|Bitcoin|₿">₿ BTC-BRL (Bitcoin)</option>
@@ -476,7 +493,7 @@ body {
           <option value="ARS-BRL|Peso Arg.|🇦🇷">🇦🇷 ARS-BRL (Peso Argentino)</option>
           <option value="SOL-BRL|Solana|◎">◎ SOL-BRL (Solana)</option>
         </select>
-        <button class="btn-primary btn-small" onclick="addPresetCurrency()" style="flex:1;">➕ Adicionar</button>
+        <button class="btn-primary btn-small" onclick="addPresetCurrency()" style="flex:1;">➕ Adicionar Moeda</button>
       </div>
       <table class="currency-table">
         <thead>
@@ -484,7 +501,7 @@ body {
             <th>Par</th>
             <th>Moeda</th>
             <th>Exibir Nome</th>
-            <th>Taxa</th>
+            <th>Taxa Atual</th>
             <th>Ações</th>
           </tr>
         </thead>
@@ -492,28 +509,50 @@ body {
         </tbody>
       </table>
     </div>
+  </div>
 
-    <!-- AJUSTES DE EXIBIÇÃO & CONTROLE DO ESP32 -->
+  <!-- ABA 3: REDES -->
+  <div class="tab-pane" id="tab-redes">
+    <div class="card col-6">
+      <div class="card-header">
+        <div class="card-title">Redes Wi-Fi ao Alcance</div>
+        <button class="btn-primary btn-small" onclick="scanWifi()" id="btnScan">🔍 Buscar Redes</button>
+      </div>
+      <div class="wifi-list" id="wifiList">
+        <div style="padding:16px;font-size:13px;color:var(--text-muted);text-align:center;">Clique em 'Buscar Redes' para listar</div>
+      </div>
+    </div>
+
+    <div class="card col-6">
+      <div class="card-header">
+        <div class="card-title">Conectar a uma Rede Wi-Fi</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nome da Rede (SSID)</label>
+        <input type="text" id="ssid" class="form-input" placeholder="Ex: Casa_WiFi">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Senha do Wi-Fi</label>
+        <input type="password" id="pass" class="form-input" placeholder="Digite a senha">
+      </div>
+      <button class="btn-primary" onclick="saveWifi()" style="margin-top:10px;">Salvar e Conectar Wi-Fi</button>
+    </div>
+  </div>
+
+  <!-- ABA 4: AJUDA -->
+  <div class="tab-pane" id="tab-ajuda">
     <div class="card col-12">
       <div class="card-header">
-        <div class="card-title">Ajustes de Exibição (Tela do ESP32 & Web)</div>
+        <div class="card-title">Central de Ajuda & Guia de Uso</div>
       </div>
-      <div class="row-inputs">
-        <div class="form-group" style="flex: 2;">
-          <label class="form-label">Brilho do Display ESP32: <span id="brightVal" style="font-weight:700;color:var(--accent-blue);">180</span></label>
-          <input type="range" min="10" max="255" id="bright" value="180" style="width: 100%; margin-top: 8px;" oninput="updateBright(this.value)">
-        </div>
-        <div class="form-group" style="flex: 1;">
-          <label class="form-label">Tema da Tela e Web</label>
-          <button class="btn-primary" onclick="toggleTheme()" id="themeBtn" style="margin-top:2px;">🌙 Modo Escuro</button>
-        </div>
-        <div class="form-group" style="flex: 2;">
-          <label class="form-label">Upload Direto de firmware.bin</label>
-          <div style="display:flex;gap:6px;margin-top:2px;">
-            <input type="file" id="binFile" accept=".bin" class="form-input" style="padding:4px;">
-            <button class="btn-primary btn-small" onclick="uploadLocalBin()">Enviar</button>
-          </div>
-        </div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">
+        <b>1. Configuração do Wi-Fi:</b> Na aba <b>Redes</b>, clique em 'Buscar Redes', selecione a sua rede Wi-Fi, informe a senha e clique em 'Salvar e Conectar'.<br>
+        <b>2. Clima e Cidade:</b> Na aba <b>Configurações</b>, escolha seu Estado e selecione sua Cidade. O ESP32 sincronizará temperatura, previsão, umidade e vento automaticamente.<br>
+        <b>3. Moedas:</b> Você pode adicionar até 6 moedas. Os 3 primeiros pares configurados serão exibidos em destaque no painel do ESP32.<br>
+        <b>4. Atualizações OTA:</b> Quando novas versões forem publicadas no GitHub, você pode atualizar com um clique pelo botão 'Atualizar Firmware'.
+      </p>
+      <div style="margin-top:10px;">
+        <button class="btn-primary btn-small" onclick="restartEsp()" style="background-color:var(--accent-red);color:#fff;">🔄 Reiniciar ESP32</button>
       </div>
     </div>
   </div>
@@ -537,9 +576,31 @@ function toast(msg) {
   setTimeout(() => t.style.display = 'none', 3500);
 }
 
+// NAVEGAÇÃO LATERAL FUNCIONAL
 function switchNav(tab) {
+  // Atualiza botões da sidebar
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  event.currentTarget.classList.add('active');
+  let navEl = document.getElementById('nav-' + tab);
+  if (navEl) navEl.classList.add('active');
+
+  // Atualiza painéis de conteúdo
+  document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+  let pane = document.getElementById('tab-' + tab);
+  if (pane) pane.classList.add('active');
+
+  // Atualiza título da página
+  let titles = {
+    'visao': 'Visão Geral',
+    'config': 'Configurações do Painel',
+    'redes': 'Gerenciamento de Redes',
+    'ajuda': 'Central de Ajuda'
+  };
+  document.getElementById('pageTitle').textContent = titles[tab] || 'Painel de Controle';
+
+  // Se entrou em redes, dispara busca automática de Wi-Fi
+  if (tab === 'redes') {
+    scanWifi();
+  }
 }
 
 // CIDADES POR ESTADO VIA IBGE API
@@ -560,7 +621,7 @@ function onStateChange() {
 }
 
 function onCitySelected() {
-  toast('Cidade selecionada! Clique em Salvar Localização');
+  toast('Cidade selecionada! Clique em Salvar Cidade');
 }
 
 async function saveLocation() {
@@ -585,7 +646,7 @@ async function saveLocation() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ city: city.split(',')[0].trim(), lat: lat, lon: lon })
   });
-  toast('Localização salva! Painel ESP32 atualizado.');
+  toast('Cidade salva! O ESP32 já atualizou o clima.');
 }
 
 // MOEDAS PRECONFIGURADAS
@@ -645,14 +706,16 @@ async function saveCurrencies() {
 async function scanWifi() {
   let list = document.getElementById('wifiList');
   let btn = document.getElementById('btnScan');
-  btn.disabled = true;
-  btn.textContent = 'Buscando...';
-  list.innerHTML = '<div style="padding:10px;font-size:12px;color:var(--text-muted);text-align:center;">🔍 Escaneando redes ao alcance...</div>';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Buscando...';
+  }
+  list.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--text-muted);text-align:center;">🔍 Escaneando redes ao alcance...</div>';
   try {
     let r = await fetch('/api/scan');
     let j = await r.json();
     if (!j.length) {
-      list.innerHTML = '<div style="padding:10px;font-size:12px;color:var(--text-muted);text-align:center;">Nenhuma rede encontrada</div>';
+      list.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--text-muted);text-align:center;">Nenhuma rede encontrada</div>';
     } else {
       list.innerHTML = j.map(n => `
         <div class="wifi-row" onclick="selectWifi('${n.ssid}')">
@@ -662,10 +725,12 @@ async function scanWifi() {
       `).join('');
     }
   } catch (e) {
-    list.innerHTML = '<div style="padding:10px;font-size:12px;color:var(--accent-red);text-align:center;">Erro ao escanear redes.</div>';
+    list.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--accent-red);text-align:center;">Erro ao escanear redes.</div>';
   }
-  btn.disabled = false;
-  btn.textContent = '🔍 Buscar Redes';
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = '🔍 Buscar Redes';
+  }
 }
 
 function selectWifi(ssid) {
@@ -690,7 +755,7 @@ async function saveWifi() {
   toast('Wi-Fi salvo! O ESP32 está conectando...');
 }
 
-// BRILHO E TEMA (SINCRONIZADO DISPLAY + WEB)
+// BRILHO E TEMA
 let brightTimeout = null;
 function updateBright(v) {
   document.getElementById('brightVal').textContent = v;
@@ -704,10 +769,10 @@ function applyTheme(isLight) {
   isLightMode = isLight;
   if (isLight) {
     document.documentElement.setAttribute('data-theme', 'light');
-    document.getElementById('themeBtn').textContent = '☀️ Modo Claro';
+    document.getElementById('themeBtn').textContent = '☀️ Modo Claro (Ativo)';
   } else {
     document.documentElement.removeAttribute('data-theme');
-    document.getElementById('themeBtn').textContent = '🌙 Modo Escuro';
+    document.getElementById('themeBtn').textContent = '🌙 Modo Escuro (Ativo)';
   }
 }
 
@@ -781,12 +846,21 @@ async function uploadLocalBin() {
   }
 }
 
+async function restartEsp() {
+  if (confirm('Deseja realmente reiniciar o ESP32?')) {
+    await fetch('/api/restart', { method: 'POST' });
+    toast('ESP32 reiniciando...');
+    setTimeout(() => location.reload(), 6000);
+  }
+}
+
 async function loadData() {
   try {
     let r = await fetch('/api/data');
     let j = await r.json();
     document.getElementById('liveWifi').textContent = j.wifi === 'Conectado' ? 'Conexão Ativa (' + j.ip + ')' : 'Modo AP';
     document.getElementById('liveUptime').textContent = Math.floor(j.uptime / 60) + ' mins';
+    document.getElementById('liveHeap').textContent = Math.floor(j.heap / 1024) + ' KB';
     document.getElementById('ipHeader').textContent = 'IP: ' + j.ip;
   } catch (e) {}
 }
