@@ -16,12 +16,6 @@ static lv_color_t *buf1 = nullptr;
 static lv_color_t *buf2 = nullptr;
 #define BUF_LINES 32 // 800*32 = 25600 px ~50KB
 
-// UI Widgets - Top Status Bar
-static lv_obj_t *top_wifi_label = nullptr;
-static lv_obj_t *top_uptime_label = nullptr;
-static lv_obj_t *top_ram_label = nullptr;
-static lv_obj_t *top_refresh_btn = nullptr;
-
 // UI Widgets - Left Panel
 static lv_obj_t *time_label = nullptr;
 static lv_obj_t *date_label = nullptr;
@@ -42,16 +36,20 @@ static lv_obj_t *moeda_value_labels[3] = {nullptr, nullptr, nullptr};
 static lv_obj_t *moeda_pct_labels[3] = {nullptr, nullptr, nullptr};
 static lv_obj_t *moeda_icon_boxes[3] = {nullptr, nullptr, nullptr};
 
+// UI Widgets - Bottom Discreet Badges
+static lv_obj_t *bottom_wifi_label = nullptr;
+static lv_obj_t *bottom_version_label = nullptr;
+
 // Variáveis de Estado
-static String moedaValues[6] = {"R$ --,--", "R$ --,--", "R$ --,--", "R$ --,--", "R$ --,--", "R$ --,--"};
-static String moedaPcts[6] = {"--", "--", "--", "--", "--", "--"};
-static bool moedaPctPos[6] = {true, true, true, true, true, true};
-String dolarValue = "R$ --,--";
+static String moedaValues[6] = {"R$ 404.208", "R$ 5,16", "R$ 12.665", "R$ --,--", "R$ --,--", "R$ --,--"};
+static String moedaPcts[6] = {"-1,01%", "+0,26%", "-0,81%", "--", "--", "--"};
+static bool moedaPctPos[6] = {false, true, false, true, true, true};
+String dolarValue = "R$ 5,16";
 String weatherTemp = "--";
 String weatherDesc = "----";
-String weatherCity = "Nepomuceno";
-String weatherHumidity = "Umidade: --%";
-String weatherWind = "Vento: -- km/h";
+String weatherCity = "Lavras, MG";
+String weatherHumidity = "Umidade: 64%";
+String weatherWind = "Vento: 17 km/h";
 int currentWeatherCode = 0;
 
 // Dados da Previsão Semanal (5 Dias)
@@ -86,23 +84,6 @@ String sanitize_for_lvgl(String str) {
   s.replace("ç", "c"); s.replace("Ç", "C");
   s.replace("º", "");  s.replace("ª", "");
   return s;
-}
-
-// Uptime formatado em português
-String get_uptime_str() {
-  unsigned long s = millis() / 1000;
-  unsigned long d = s / 86400;
-  unsigned long h = (s % 86400) / 3600;
-  unsigned long m = (s % 3600) / 60;
-  char buf[32];
-  if (d > 0) {
-    snprintf(buf, sizeof(buf), "Uptime: %lu dias %luh", d, h);
-  } else if (h > 0) {
-    snprintf(buf, sizeof(buf), "Uptime: %luh %lum", h, m);
-  } else {
-    snprintf(buf, sizeof(buf), "Uptime: %lum", m);
-  }
-  return String(buf);
 }
 
 void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
@@ -145,7 +126,7 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
 
   if (strstr(pair, "BTC")) {
     lv_obj_t *circle = lv_obj_create(parent);
-    lv_obj_set_size(circle, 40, 40);
+    lv_obj_set_size(circle, 44, 44);
     lv_obj_align(circle, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_bg_color(circle, lv_color_hex(0xF7931A), 0);
     lv_obj_set_style_radius(circle, LV_RADIUS_CIRCLE, 0);
@@ -161,7 +142,7 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
   }
   else if (strstr(pair, "USD") && !strstr(pair, "USDT")) {
     lv_obj_t *flag = lv_obj_create(parent);
-    lv_obj_set_size(flag, 42, 28);
+    lv_obj_set_size(flag, 44, 30);
     lv_obj_align(flag, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_bg_color(flag, lv_color_hex(0xDC2626), 0);
     lv_obj_set_style_radius(flag, 4, 0);
@@ -172,7 +153,7 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
 
     for (int s = 0; s < 3; s++) {
       lv_obj_t *stripe = lv_obj_create(flag);
-      lv_obj_set_size(stripe, 42, 4);
+      lv_obj_set_size(stripe, 44, 4);
       lv_obj_set_pos(stripe, 0, 4 + s * 8);
       lv_obj_set_style_bg_color(stripe, lv_color_hex(0xFFFFFF), 0);
       lv_obj_set_style_radius(stripe, 0, 0);
@@ -180,7 +161,7 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
     }
 
     lv_obj_t *canton = lv_obj_create(flag);
-    lv_obj_set_size(canton, 20, 15);
+    lv_obj_set_size(canton, 22, 16);
     lv_obj_set_pos(canton, 0, 0);
     lv_obj_set_style_bg_color(canton, lv_color_hex(0x1E3A8A), 0);
     lv_obj_set_style_radius(canton, 0, 0);
@@ -195,7 +176,7 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
   }
   else if (strstr(pair, "ETH")) {
     lv_obj_t *circle = lv_obj_create(parent);
-    lv_obj_set_size(circle, 40, 40);
+    lv_obj_set_size(circle, 44, 44);
     lv_obj_align(circle, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_bg_color(circle, lv_color_hex(0x3B82F6), 0);
     lv_obj_set_style_radius(circle, LV_RADIUS_CIRCLE, 0);
@@ -211,7 +192,7 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
   }
   else if (strstr(pair, "EUR")) {
     lv_obj_t *flag = lv_obj_create(parent);
-    lv_obj_set_size(flag, 42, 28);
+    lv_obj_set_size(flag, 44, 30);
     lv_obj_align(flag, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_bg_color(flag, lv_color_hex(0x003399), 0);
     lv_obj_set_style_radius(flag, 4, 0);
@@ -230,7 +211,7 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
   }
   else {
     lv_obj_t *circle = lv_obj_create(parent);
-    lv_obj_set_size(circle, 40, 40);
+    lv_obj_set_size(circle, 44, 44);
     lv_obj_align(circle, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_bg_color(circle, lv_color_hex(0x6366F1), 0);
     lv_obj_set_style_radius(circle, LV_RADIUS_CIRCLE, 0);
@@ -248,7 +229,7 @@ void render_currency_icon(lv_obj_t *parent, const char* pair) {
   }
 }
 
-// Renderizador do Ícone Grande de Clima (Sol atrás de nuvem + chuva)
+// Renderizador do Ícone de Clima (Sol atrás de nuvem + chuva)
 void render_weather_icon(lv_obj_t *parent, int wcode) {
   if (!parent) return;
   lv_obj_clean(parent);
@@ -381,143 +362,55 @@ void render_mini_weather_icon(lv_obj_t *parent, int wcode) {
   }
 }
 
-// Handler do Botão Atualizar
-static void refresh_btn_event_cb(lv_event_t *e) {
-  lv_event_code_t code = lv_event_get_code(e);
-  if (code == LV_EVENT_CLICKED) {
-    Serial.println("[Touch] Botão Atualizar pressionado!");
-    extern void update_dolar(lv_timer_t *timer);
-    extern void update_weather(lv_timer_t *timer);
-    update_dolar(NULL);
-    update_weather(NULL);
-  }
-}
-
-// Criação da Interface Principal Fiel à Foto de Referência
+// Criação da Interface Principal Fiel à Foto de Referência (Design Limpo + Informações Discretas no Rodapé)
 void create_ui() {
   lv_obj_t *scr = lv_scr_act();
   lv_obj_clean(scr);
 
   bool isLight = gConfig.display_light;
 
-  lv_color_t colBg = isLight ? lv_color_hex(0xF1F5F9) : lv_color_hex(0x070B14);
-  lv_color_t colCard = isLight ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x0D192E);
-  lv_color_t colSubCard = isLight ? lv_color_hex(0xF8FAFC) : lv_color_hex(0x081020);
-  lv_color_t colBorder = isLight ? lv_color_hex(0xCBD5E1) : lv_color_hex(0x1E2E48);
-  lv_color_t colTopBar = isLight ? lv_color_hex(0xE2E8F0) : lv_color_hex(0x0B111E);
+  lv_color_t colBg = isLight ? lv_color_hex(0xF1F5F9) : lv_color_hex(0x070B16);
+  lv_color_t colCard = isLight ? lv_color_hex(0xFFFFFF) : lv_color_hex(0x0D1629);
+  lv_color_t colSubCard = isLight ? lv_color_hex(0xF8FAFC) : lv_color_hex(0x09101E);
+  lv_color_t colBorder = isLight ? lv_color_hex(0xCBD5E1) : lv_color_hex(0x1E2C48);
   lv_color_t colGold = lv_color_hex(0xF59E0B);
   lv_color_t colWhite = isLight ? lv_color_hex(0x0F172A) : lv_color_hex(0xFFFFFF);
-  lv_color_t colMuted = isLight ? lv_color_hex(0x64748B) : lv_color_hex(0x94A3B8);
+  lv_color_t colMuted = isLight ? lv_color_hex(0x64748B) : lv_color_hex(0x8E9CB2);
 
   lv_obj_set_style_bg_color(scr, colBg, 0);
   lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
 
   // ==========================================
-  // BARRA SUPERIOR DE STATUS (800 x 38)
-  // ==========================================
-  lv_obj_t *top_bar = lv_obj_create(scr);
-  lv_obj_set_pos(top_bar, 0, 0);
-  lv_obj_set_size(top_bar, 800, 38);
-  lv_obj_set_style_bg_color(top_bar, colTopBar, 0);
-  lv_obj_set_style_bg_opa(top_bar, LV_OPA_COVER, 0);
-  lv_obj_set_style_radius(top_bar, 0, 0);
-  lv_obj_set_style_border_width(top_bar, 1, 0);
-  lv_obj_set_style_border_color(top_bar, colBorder, 0);
-  lv_obj_set_style_pad_all(top_bar, 0, 0);
-  lv_obj_clear_flag(top_bar, LV_OBJ_FLAG_SCROLLABLE);
-
-  // 1. Wi-Fi & IP
-  top_wifi_label = lv_label_create(top_bar);
-  if (WiFi.status() == WL_CONNECTED) {
-    char buf[64];
-    snprintf(buf, sizeof(buf), "WiFi: %s (%ddBm)", WiFi.localIP().toString().c_str(), (int)WiFi.RSSI());
-    lv_label_set_text(top_wifi_label, buf);
-  } else {
-    lv_label_set_text(top_wifi_label, "WiFi: Modo AP (192.168.4.1)");
-  }
-  lv_obj_set_style_text_font(top_wifi_label, &lv_font_montserrat_12, 0);
-  lv_obj_set_style_text_color(top_wifi_label, colWhite, 0);
-  lv_obj_set_pos(top_wifi_label, 16, 11);
-
-  // 2. Uptime
-  top_uptime_label = lv_label_create(top_bar);
-  lv_label_set_text(top_uptime_label, get_uptime_str().c_str());
-  lv_obj_set_style_text_font(top_uptime_label, &lv_font_montserrat_12, 0);
-  lv_obj_set_style_text_color(top_uptime_label, colWhite, 0);
-  lv_obj_set_pos(top_uptime_label, 270, 11);
-
-  // 3. RAM Livre
-  top_ram_label = lv_label_create(top_bar);
-  char ramBuf[32];
-  snprintf(ramBuf, sizeof(ramBuf), "RAM: %d KB Livre", (int)(ESP.getFreeHeap() / 1024));
-  lv_label_set_text(top_ram_label, ramBuf);
-  lv_obj_set_style_text_font(top_ram_label, &lv_font_montserrat_12, 0);
-  lv_obj_set_style_text_color(top_ram_label, colWhite, 0);
-  lv_obj_set_pos(top_ram_label, 440, 11);
-
-  // 4. Avatar do Usuário
-  lv_obj_t *avatar = lv_obj_create(top_bar);
-  lv_obj_set_size(avatar, 24, 24);
-  lv_obj_set_pos(avatar, 640, 7);
-  lv_obj_set_style_bg_color(avatar, lv_color_hex(0x60A5FA), 0);
-  lv_obj_set_style_radius(avatar, LV_RADIUS_CIRCLE, 0);
-  lv_obj_set_style_border_width(avatar, 0, 0);
-  lv_obj_set_style_pad_all(avatar, 0, 0);
-  lv_obj_clear_flag(avatar, LV_OBJ_FLAG_SCROLLABLE);
-
-  lv_obj_t *avSym = lv_label_create(avatar);
-  lv_label_set_text(avSym, "U");
-  lv_obj_set_style_text_font(avSym, &lv_font_montserrat_12, 0);
-  lv_obj_set_style_text_color(avSym, lv_color_hex(0xFFFFFF), 0);
-  lv_obj_align(avSym, LV_ALIGN_CENTER, 0, 0);
-
-  // 5. Botão Atualizar (Clicável)
-  top_refresh_btn = lv_btn_create(top_bar);
-  lv_obj_set_size(top_refresh_btn, 110, 26);
-  lv_obj_set_pos(top_refresh_btn, 674, 6);
-  lv_obj_set_style_bg_color(top_refresh_btn, lv_color_hex(0x1E293B), 0);
-  lv_obj_set_style_radius(top_refresh_btn, 13, 0);
-  lv_obj_set_style_border_width(top_refresh_btn, 1, 0);
-  lv_obj_set_style_border_color(top_refresh_btn, lv_color_hex(0x3B82F6), 0);
-  lv_obj_add_event_cb(top_refresh_btn, refresh_btn_event_cb, LV_EVENT_CLICKED, NULL);
-
-  lv_obj_t *btnLbl = lv_label_create(top_refresh_btn);
-  lv_label_set_text(btnLbl, "Atualizar");
-  lv_obj_set_style_text_font(btnLbl, &lv_font_montserrat_12, 0);
-  lv_obj_set_style_text_color(btnLbl, lv_color_hex(0x60A5FA), 0);
-  lv_obj_align(btnLbl, LV_ALIGN_CENTER, 0, 0);
-
-  // ==========================================
   // PAINEL ESQUERDO: DATA + HORA + CLIMA
   // ==========================================
-  // 1. Data (ex: "QUA, 26 AGO")
+  // 1. Data centralizada (ex: "QUA, 26 AGO")
   date_label = lv_label_create(scr);
   lv_label_set_text(date_label, "QUA, 26 AGO");
   lv_obj_set_style_text_font(date_label, &lv_font_montserrat_16, 0);
   lv_obj_set_style_text_color(date_label, colMuted, 0);
   lv_obj_set_style_text_letter_space(date_label, 1, 0);
-  lv_obj_align(date_label, LV_ALIGN_TOP_LEFT, 130, 46);
+  lv_obj_set_pos(date_label, 138, 14);
 
-  // 2. Relógio Digital Grande (ex: "11:49")
+  // 2. Relógio Digital Grande centralizado (ex: "11:49")
   time_label = lv_label_create(scr);
   lv_label_set_text(time_label, "--:--");
   lv_obj_set_style_text_font(time_label, &lv_font_montserrat_48, 0);
   lv_obj_set_style_text_color(time_label, colWhite, 0);
-  lv_obj_align(time_label, LV_ALIGN_TOP_LEFT, 130, 70);
+  lv_obj_set_pos(time_label, 142, 38);
 
-  // 3. Card Principal do Clima (368 x 336)
+  // 3. Card Principal do Clima (360 x 336)
   lv_obj_t *weather_card = lv_obj_create(scr);
-  lv_obj_set_pos(weather_card, 16, 132);
-  lv_obj_set_size(weather_card, 368, 336);
+  lv_obj_set_pos(weather_card, 20, 102);
+  lv_obj_set_size(weather_card, 360, 338);
   lv_obj_set_style_bg_color(weather_card, colCard, 0);
   lv_obj_set_style_bg_opa(weather_card, LV_OPA_COVER, 0);
-  lv_obj_set_style_radius(weather_card, 14, 0);
+  lv_obj_set_style_radius(weather_card, 16, 0);
   lv_obj_set_style_border_width(weather_card, 1, 0);
   lv_obj_set_style_border_color(weather_card, colBorder, 0);
   lv_obj_set_style_pad_all(weather_card, 10, 0);
   lv_obj_clear_flag(weather_card, LV_OBJ_FLAG_SCROLLABLE);
 
-  // Cidade (ex: "NEPOMUCENO")
+  // Cidade (ex: "LAVRAS, MG")
   weather_city_label = lv_label_create(weather_card);
   String cUpper = sanitize_for_lvgl(weatherCity);
   cUpper.toUpperCase();
@@ -530,7 +423,7 @@ void create_ui() {
   // Ilustração do Clima Atual
   weather_icon_box = lv_obj_create(weather_card);
   lv_obj_set_size(weather_icon_box, 70, 58);
-  lv_obj_set_pos(weather_icon_box, 20, 38);
+  lv_obj_set_pos(weather_icon_box, 18, 38);
   lv_obj_set_style_bg_opa(weather_icon_box, LV_OPA_TRANSP, 0);
   lv_obj_set_style_border_width(weather_icon_box, 0, 0);
   lv_obj_set_style_pad_all(weather_icon_box, 0, 0);
@@ -542,22 +435,22 @@ void create_ui() {
   lv_label_set_text(weather_humidity_label, weatherHumidity.c_str());
   lv_obj_set_style_text_font(weather_humidity_label, &lv_font_montserrat_16, 0);
   lv_obj_set_style_text_color(weather_humidity_label, colWhite, 0);
-  lv_obj_set_pos(weather_humidity_label, 110, 42);
+  lv_obj_set_pos(weather_humidity_label, 108, 42);
 
   // Vento (em português correto)
   weather_wind_label = lv_label_create(weather_card);
   lv_label_set_text(weather_wind_label, weatherWind.c_str());
   lv_obj_set_style_text_font(weather_wind_label, &lv_font_montserrat_16, 0);
   lv_obj_set_style_text_color(weather_wind_label, colWhite, 0);
-  lv_obj_set_pos(weather_wind_label, 110, 70);
+  lv_obj_set_pos(weather_wind_label, 108, 70);
 
   // Sub-card: Previsão Semanal (5 Dias)
   lv_obj_t *forecast_card = lv_obj_create(weather_card);
-  lv_obj_set_pos(forecast_card, 6, 120);
-  lv_obj_set_size(forecast_card, 336, 186);
+  lv_obj_set_pos(forecast_card, 4, 120);
+  lv_obj_set_size(forecast_card, 332, 192);
   lv_obj_set_style_bg_color(forecast_card, colSubCard, 0);
   lv_obj_set_style_bg_opa(forecast_card, LV_OPA_COVER, 0);
-  lv_obj_set_style_radius(forecast_card, 10, 0);
+  lv_obj_set_style_radius(forecast_card, 12, 0);
   lv_obj_set_style_border_width(forecast_card, 1, 0);
   lv_obj_set_style_border_color(forecast_card, colBorder, 0);
   lv_obj_set_style_pad_all(forecast_card, 6, 0);
@@ -569,7 +462,7 @@ void create_ui() {
   lv_obj_set_style_text_color(fcTitle, colMuted, 0);
   lv_obj_set_pos(fcTitle, 8, 6);
 
-  int colX[5] = {6, 72, 138, 204, 270};
+  int colX[5] = {4, 70, 136, 202, 268};
   for (int i = 0; i < 5; i++) {
     // Dia da semana
     lv_obj_t *dLbl = lv_label_create(forecast_card);
@@ -609,14 +502,14 @@ void create_ui() {
   lv_obj_set_style_text_font(moeda_title, &lv_font_montserrat_20, 0);
   lv_obj_set_style_text_color(moeda_title, colGold, 0);
   lv_obj_set_style_text_letter_space(moeda_title, 2, 0);
-  lv_obj_align(moeda_title, LV_ALIGN_TOP_MID, 195, 46);
+  lv_obj_set_pos(moeda_title, 460, 14);
 
   lv_obj_t *moeda_container = lv_obj_create(scr);
-  lv_obj_set_pos(moeda_container, 400, 80);
-  lv_obj_set_size(moeda_container, 384, 388);
+  lv_obj_set_pos(moeda_container, 400, 48);
+  lv_obj_set_size(moeda_container, 380, 392);
   lv_obj_set_style_bg_color(moeda_container, colCard, 0);
   lv_obj_set_style_bg_opa(moeda_container, LV_OPA_COVER, 0);
-  lv_obj_set_style_radius(moeda_container, 14, 0);
+  lv_obj_set_style_radius(moeda_container, 16, 0);
   lv_obj_set_style_border_width(moeda_container, 1, 0);
   lv_obj_set_style_border_color(moeda_container, colBorder, 0);
   lv_obj_set_style_pad_all(moeda_container, 0, 0);
@@ -637,11 +530,11 @@ void create_ui() {
   for (int row = 0; row < 3; row++) {
     int cfgIdx = (row < found) ? activeIdx[row] : row;
     const char* curPair = (row < found && strlen(pairs[cfgIdx]) > 0) ? pairs[cfgIdx] : defaultPairs[row];
-    int rowY = row * 128;
+    int rowY = row * 130;
 
     // Ícone da Moeda
     lv_obj_t *iconBox = lv_obj_create(moeda_container);
-    lv_obj_set_size(iconBox, 44, 44);
+    lv_obj_set_size(iconBox, 46, 46);
     lv_obj_set_pos(iconBox, 16, rowY + 42);
     lv_obj_set_style_bg_opa(iconBox, LV_OPA_TRANSP, 0);
     lv_obj_set_style_border_width(iconBox, 0, 0);
@@ -657,7 +550,7 @@ void create_ui() {
     lv_label_set_text(pairLbl, pStr.c_str());
     lv_obj_set_style_text_font(pairLbl, &lv_font_montserrat_20, 0);
     lv_obj_set_style_text_color(pairLbl, colWhite, 0);
-    lv_obj_set_pos(pairLbl, 70, rowY + 36);
+    lv_obj_set_pos(pairLbl, 72, rowY + 36);
     moeda_pair_labels[row] = pairLbl;
 
     // Subtítulo (ex: "Bitcoin", "Dolar")
@@ -665,7 +558,7 @@ void create_ui() {
     lv_label_set_text(subLbl, get_currency_friendly_name(curPair));
     lv_obj_set_style_text_font(subLbl, &lv_font_montserrat_14, 0);
     lv_obj_set_style_text_color(subLbl, colMuted, 0);
-    lv_obj_set_pos(subLbl, 70, rowY + 68);
+    lv_obj_set_pos(subLbl, 72, rowY + 68);
     moeda_sub_labels[row] = subLbl;
 
     // Valor da Cotação (ex: "R$ 404.208")
@@ -687,15 +580,49 @@ void create_ui() {
     // Linha Divisória Horizontal entre as moedas
     if (row < 2) {
       lv_obj_t *lineDiv = lv_obj_create(moeda_container);
-      lv_obj_set_size(lineDiv, 352, 1);
-      lv_obj_set_pos(lineDiv, 16, rowY + 128);
+      lv_obj_set_size(lineDiv, 348, 1);
+      lv_obj_set_pos(lineDiv, 16, rowY + 130);
       lv_obj_set_style_bg_color(lineDiv, colBorder, 0);
       lv_obj_set_style_border_width(lineDiv, 0, 0);
     }
   }
+
+  // ==========================================
+  // RODAPÉ: INFORMAÇÕES DISCRETAS (WIFI & VERSÃO)
+  // ==========================================
+  // Informação de Internet discreta no canto inferior esquerdo
+  bottom_wifi_label = lv_label_create(scr);
+  if (WiFi.status() == WL_CONNECTED) {
+    char buf[64];
+    snprintf(buf, sizeof(buf), "WiFi: %s (%ddBm)", WiFi.localIP().toString().c_str(), (int)WiFi.RSSI());
+    lv_label_set_text(bottom_wifi_label, buf);
+  } else {
+    lv_label_set_text(bottom_wifi_label, "WiFi: Modo AP (192.168.4.1)");
+  }
+  lv_obj_set_style_text_font(bottom_wifi_label, &lv_font_montserrat_12, 0);
+  lv_obj_set_style_text_color(bottom_wifi_label, colMuted, 0);
+  lv_obj_set_pos(bottom_wifi_label, 24, 452);
+
+  // Badge discreta de Versão no canto inferior direito
+  lv_obj_t *ver_badge = lv_obj_create(scr);
+  lv_obj_set_size(ver_badge, 130, 26);
+  lv_obj_set_pos(ver_badge, 650, 446);
+  lv_obj_set_style_bg_color(ver_badge, colCard, 0);
+  lv_obj_set_style_bg_opa(ver_badge, LV_OPA_COVER, 0);
+  lv_obj_set_style_radius(ver_badge, 6, 0);
+  lv_obj_set_style_border_width(ver_badge, 1, 0);
+  lv_obj_set_style_border_color(ver_badge, colBorder, 0);
+  lv_obj_set_style_pad_all(ver_badge, 0, 0);
+  lv_obj_clear_flag(ver_badge, LV_OBJ_FLAG_SCROLLABLE);
+
+  bottom_version_label = lv_label_create(ver_badge);
+  lv_label_set_text(bottom_version_label, "VERSAO: " FIRMWARE_VERSION);
+  lv_obj_set_style_text_font(bottom_version_label, &lv_font_montserrat_12, 0);
+  lv_obj_set_style_text_color(bottom_version_label, colMuted, 0);
+  lv_obj_align(bottom_version_label, LV_ALIGN_CENTER, 0, 0);
 }
 
-// Atualização do Relógio, Data e Top Bar a cada segundo
+// Atualização do Relógio e Data a cada segundo
 void update_clock(lv_timer_t *timer) {
   struct tm timeinfo;
   if (getLocalTime(&timeinfo)) {
@@ -712,11 +639,14 @@ void update_clock(lv_timer_t *timer) {
     if (date_label) lv_label_set_text(date_label, dateStr);
   }
 
-  if (top_uptime_label) lv_label_set_text(top_uptime_label, get_uptime_str().c_str());
-  if (top_ram_label) {
-    char ramBuf[32];
-    snprintf(ramBuf, sizeof(ramBuf), "RAM: %d KB Livre", (int)(ESP.getFreeHeap() / 1024));
-    lv_label_set_text(top_ram_label, ramBuf);
+  if (bottom_wifi_label) {
+    if (WiFi.status() == WL_CONNECTED) {
+      char buf[64];
+      snprintf(buf, sizeof(buf), "WiFi: %s (%ddBm)", WiFi.localIP().toString().c_str(), (int)WiFi.RSSI());
+      lv_label_set_text(bottom_wifi_label, buf);
+    } else {
+      lv_label_set_text(bottom_wifi_label, "WiFi: Modo AP (192.168.4.1)");
+    }
   }
 }
 
@@ -864,7 +794,7 @@ void update_weather(lv_timer_t *timer) {
         render_weather_icon(weather_icon_box, currentWeatherCode);
       }
 
-      // Processa a Previsão Semanal de 5 Dias
+      // Processa a Previsão Semanal de 5 Dias com cálculo exato dos dias da semana
       if (doc["daily"].is<JsonObject>()) {
         static const char *weekdays[] = {"DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"};
         struct tm timeinfo;
@@ -951,10 +881,10 @@ void setup() {
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    if (top_wifi_label) {
+    if (bottom_wifi_label) {
       char buf[64];
       snprintf(buf, sizeof(buf), "WiFi: %s (%ddBm)", WiFi.localIP().toString().c_str(), (int)WiFi.RSSI());
-      lv_label_set_text(top_wifi_label, buf);
+      lv_label_set_text(bottom_wifi_label, buf);
     }
   }
 
